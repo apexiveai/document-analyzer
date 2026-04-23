@@ -2,6 +2,8 @@ import { createSupabaseServerClient } from "@/lib/supabaseServer"
 import { redirect } from "next/navigation"
 import AuditReport from "@/components/AuditReport"
 import AuditResults from "@/components/ui/AuditResults"
+import ShareResults from "@/components/ShareResults"
+import TeamWorkspace from "@/components/TeamWorkspace"
 import { normalizeStoredAuditResult } from "@/services/audit"
 
 export const dynamic = "force-dynamic"
@@ -56,7 +58,20 @@ export default async function DocumentDetails({
     <div className="min-h-screen bg-linear-to-br from-indigo-50 via-blue-50 to-cyan-50 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">{data.filename || data.file_name}</h1>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">{data.filename || data.file_name}</h1>
+            </div>
+            
+            {/* Collaboration Actions */}
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <ShareResults 
+                documentId={id} 
+                documentTitle={data.filename || data.file_name || "Document"} 
+              />
+              <TeamWorkspace documentId={id} />
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>

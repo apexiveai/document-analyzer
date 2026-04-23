@@ -2,7 +2,9 @@
 
 import { useRef, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Upload, FileText, CheckCircle, X, Image as ImageIcon, File, Shield, Truck } from "lucide-react"
+import { Upload, FileText, CheckCircle, X, Image as ImageIcon, Shield, Truck } from "lucide-react"
+import { useToast } from "@/components/ui/Toast"
+import { motion } from "framer-motion"
 
 const MAX_BYTES = 10 * 1024 * 1024
 const ACCEPTED_TYPES = {
@@ -28,6 +30,7 @@ export default function FileUploader({ onUploadSuccess }: { onUploadSuccess?: ()
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isAuditMode, setIsAuditMode] = useState(false)
   const [documentType, setDocumentType] = useState<'commercial_invoice' | 'service_agreement'>('commercial_invoice')
+  const { showToast } = useToast()
 
   const validateFile = (file: File): string | null => {
     if (file.size > MAX_BYTES) {
@@ -78,7 +81,7 @@ export default function FileUploader({ onUploadSuccess }: { onUploadSuccess?: ()
     }
   }
 
-  const handleFileSelect = async (file: File) => {
+  const handleFileSelect = (file: File) => {
     setErrorDetail(null)
     const validationError = validateFile(file)
 
@@ -86,70 +89,91 @@ export default function FileUploader({ onUploadSuccess }: { onUploadSuccess?: ()
       setSelectedFile(file)
       setUploadStatus("error")
       setErrorDetail(validationError)
+      showToast(validationError, "error")
       return
     }
 
     setSelectedFile(file)
-    await uploadFile(file)
+    void uploadFile(file)
   }
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    await handleFileSelect(file)
+    void handleFileSelect(file)
   }
 
-  const uploadFile = async (file: File) => {
-    const formData = new FormData()
-    formData.append("file", file)
+  const uploadFile = (file: File): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const formData = new FormData()
+      formData.append("file", file)
 
-    if (isAuditMode) {
-      formData.append("documentType", documentType)
-    }
+      if (isAuditMode) {
+        formData.append("documentType", documentType)
+      }
 
-    setLoading(true)
-    setUploadStatus("uploading")
-    setUploadProgress(0)
+      setLoading(true)
+      setUploadStatus("uploading")
+      setUploadProgress(0)
 
-    try {
       const endpoint = isAuditMode ? "/api/audit" : "/api/upload"
-      const res = await fetch(endpoint, {
-        method: "POST",
-        body: formData,
-        credentials: "same-origin",
-      })
+      const xhr = new XMLHttpRequest()
 
-      const text = await res.text()
-      let data: { id?: string; audit?: Record<string, unknown>; documentId?: string; error?: string; success?: boolean } | null
-      try {
-        data = text ? JSON.parse(text) : null
-      } catch {
-        data = { error: text || "Invalid JSON response from upload API" }
-      }
-
-      if (res.status === 401) {
-        router.push("/login")
-        return
-      }
-
-      if (res.ok && data) {
-        setUploadStatus("success")
-        setUploadProgress(100)
-        // Call the success callback to refresh documents list
-        if (onUploadSuccess) {
-          onUploadSuccess()
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100)
+          setUploadProgress(progress)
         }
-        // Don't redirect, just show success
-      } else {
-        setUploadStatus("error")
-        setErrorDetail(data?.error ?? "Upload failed.")
       }
-    } catch (error) {
-      setUploadStatus("error")
-      setErrorDetail(error instanceof Error ? error.message : "Upload error")
-    } finally {
-      setLoading(false)
-    }
+
+      xhr.onload = () => {
+        if (xhr.status === 401) {
+          router.push("/login")
+          setLoading(false)
+          reject(new Error("Unauthorized"))
+          return
+        }
+
+        const text = xhr.responseText
+        let data: { id?: string; audit?: Record<string, unknown>; documentId?: string; error?: string; success?: boolean } | null
+        try {
+          data = text ? JSON.parse(text) : null
+        } catch {
+          data = { error: text || "Invalid JSON response from upload API" }
+        }
+
+        if (xhr.status >= 200 && xhr.status < 300 && data) {
+          setUploadStatus("success")
+          setUploadProgress(100)
+          showToast("Document uploaded successfully!", "success")
+          if (onUploadSuccess) {
+            onUploadSuccess()
+          }
+          setLoading(false)
+          resolve()
+        } else {
+          const errorMsg = data?.error ?? `Upload failed (${xhr.status})`
+          setUploadStatus("error")
+          setErrorDetail(errorMsg)
+          showToast(errorMsg, "error")
+          setLoading(false)
+          reject(new Error(errorMsg))
+        }
+      }
+
+      xhr.onerror = () => {
+        setUploadStatus("error")
+        const errorMsg = "Network error during upload"
+        setErrorDetail(errorMsg)
+        showToast(errorMsg, "error")
+        setLoading(false)
+        reject(new Error(errorMsg))
+      }
+
+      xhr.open("POST", endpoint, true)
+      xhr.withCredentials = true
+      xhr.send(formData)
+    })
   }
 
   return (
@@ -160,7 +184,8 @@ export default function FileUploader({ onUploadSuccess }: { onUploadSuccess?: ()
           <h3 className="text-lg font-semibold text-gray-900">Upload Mode</h3>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
-          <button
+          <motion.button
+            whileTap={{ scale: 0.95 }}
             onClick={() => setIsAuditMode(false)}
             className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base ${
               !isAuditMode
@@ -170,8 +195,9 @@ export default function FileUploader({ onUploadSuccess }: { onUploadSuccess?: ()
           >
             <FileText className="w-4 h-4" />
             Document Analysis
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
             onClick={() => setIsAuditMode(true)}
             className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base ${
               isAuditMode
@@ -181,41 +207,45 @@ export default function FileUploader({ onUploadSuccess }: { onUploadSuccess?: ()
           >
             <Shield className="w-4 h-4" />
             Multi-Region Audit
-          </button>
+          </motion.button>
         </div>
 
         {isAuditMode && (
           <div className="border-t pt-4 mt-4">
             <h4 className="text-sm font-medium text-gray-700 mb-3">Document Type</h4>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg hover:bg-gray-100 border border-transparent hover:border-gray-200 transition-all">
                 <input
                   type="radio"
                   name="documentType"
                   value="commercial_invoice"
                   checked={documentType === 'commercial_invoice'}
                   onChange={(e) => setDocumentType(e.target.value as 'commercial_invoice')}
-                  className="text-purple-600 focus:ring-purple-500"
+                  className="text-purple-600 focus:ring-purple-500 w-4 h-4"
                 />
-                <Truck className="w-4 h-4 text-blue-500" />
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Commercial Invoice</span>
-                  <span className="text-xs text-gray-500">(HS Code Validation)</span>
+                <div className="flex items-center gap-2">
+                  <Truck className="w-4 h-4 text-blue-500 shrink-0" />
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-medium truncate">Commercial Invoice</span>
+                    <span className="text-[10px] text-gray-500">(HS Code Validation)</span>
+                  </div>
                 </div>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg hover:bg-gray-100 border border-transparent hover:border-gray-200 transition-all">
                 <input
                   type="radio"
                   name="documentType"
                   value="service_agreement"
                   checked={documentType === 'service_agreement'}
                   onChange={(e) => setDocumentType(e.target.value as 'service_agreement')}
-                  className="text-purple-600 focus:ring-purple-500"
+                  className="text-purple-600 focus:ring-purple-500 w-4 h-4"
                 />
-                <Shield className="w-4 h-4 text-purple-500" />
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Service Agreement</span>
-                  <span className="text-xs text-gray-500">(Legal Risk Assessment)</span>
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-purple-500 shrink-0" />
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-medium truncate">Service Agreement</span>
+                    <span className="text-[10px] text-gray-500">(Legal Risk Assessment)</span>
+                  </div>
                 </div>
               </label>
             </div>

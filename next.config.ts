@@ -1,6 +1,7 @@
 import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["pdf-parse", "@napi-rs/canvas"],
   experimental: {
     // Replace deprecated middlewareClientMaxBodySize with proxyClientMaxBodySize
     proxyClientMaxBodySize: 50 * 1024 * 1024, // 50MB

@@ -1,13 +1,31 @@
 "use server"
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createSupabaseServerClient } from "../supabaseServer";
 import { PLANS, PlanKey } from "../billing/plans";
 
+const CORE_IDENTITY = "sdd@gmail.com";
+
+let supabaseClient: SupabaseClient | null = null;
+
+function getSupabaseAdminClient() {
+  if (!supabaseClient) {
+    supabaseClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+  }
+  return supabaseClient;
+}
+
 export async function getUserTotalUsage(userId?: string) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = getSupabaseAdminClient();
   
   const query = supabase
     .from("documents")
@@ -29,10 +47,7 @@ export async function getUserTotalUsage(userId?: string) {
 }
 
 export async function checkUserQuota(userId: string) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = getSupabaseAdminClient();
 
   // 1. Get user plan
   const { data: profile, error: profileError } = await supabase
@@ -61,10 +76,7 @@ export async function checkUserQuota(userId: string) {
 }
 
 export async function getUserUsageStats(userId: string) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = getSupabaseAdminClient();
 
   const { data, error } = await supabase
     .from("usage_logs")
@@ -80,4 +92,44 @@ export async function getUserUsageStats(userId: string) {
   const totalCost = data.reduce((acc, curr) => acc + (Number(curr.cost) || 0), 0);
 
   return { totalTokens, totalCost, logs: data };
+}
+
+export async function getAllUsersUsage() {
+  // Server-side security check
+  const serverSupabase = await createSupabaseServerClient();
+  const { data: { user } } = await serverSupabase.auth.getUser();
+
+  if (!user || user.email !== CORE_IDENTITY) {
+    throw new Error("Unauthorized: System access only");
+  }
+
+  const supabase = getSupabaseAdminClient();
+
+  // 1. Fetch all users from auth
+  const { data: { users }, error: authError } = await supabase.auth.admin.listUsers();
+  if (authError) {
+    console.error("Error fetching users:", authError);
+    return [];
+  }
+
+  // 2. Fetch all document token usage
+  const { data: documents, error: docError } = await supabase
+    .from("documents")
+    .select("user_id, total_tokens");
+
+  if (docError) {
+    console.error("Error fetching documents:", docError);
+    return [];
+  }
+
+  // 3. Aggregate data
+  const usageMap: Record<string, number> = {};
+  documents?.forEach(doc => {
+    usageMap[doc.user_id] = (usageMap[doc.user_id] || 0) + (doc.total_tokens || 0);
+  });
+
+  return users.map(user => ({
+    email: user.email || "Unknown",
+    total_tokens: usageMap[user.id] || 0
+  })).filter(u => u.total_tokens > 0); // Only show users with usage
 }
