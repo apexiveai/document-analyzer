@@ -1,0 +1,6 @@
+{
+  "console-ninja.toolsToEnableSupportAutomaticallyFor": {
+    "next.js": false,
+    "webpack": false
+  }
+}
