@@ -6,14 +6,19 @@
  * Prevents XSS by telling the browser which sources are allowed to load
  * scripts, styles, images, etc.
  *
+ * IMPORTANT FOR VERCEL DEPLOYMENT:
+ * These CSP headers are automatically applied by Next.js on Vercel.
+ * The domains below are whitelisted for Adsterra real-world ad delivery.
+ * Domain approved: document-analyzer-ice.vercel.app
+ *
  * Directives explained:
  *   default-src 'self'          — block everything not explicitly allowed
  *   script-src  'self' 'unsafe-inline' 'unsafe-eval'
- *                               — Next.js requires unsafe-inline for its
- *                                 inline hydration scripts and unsafe-eval
- *                                 for development hot-reload. In production
- *                                 you can tighten this with nonces (see
- *                                 Next.js docs on CSP with nonces).
+ *                 + Adsterra / profitablecpmratenetwork (external invoke +
+ *                 popunder scripts). Tighten to explicit hosts if you prefer.
+ *   script-src-elem             — Explicitly allow script elements from ad domains
+ *   frame-src   … — Ad native units often embed third-party iframes; allow
+ *                 that host pattern so ads can render after scripts load.
  *   style-src   'self' 'unsafe-inline'
  *                               — Tailwind and CSS-in-JS need unsafe-inline.
  *   img-src     'self' data: blob: https:
@@ -31,11 +36,13 @@
  */
 const ContentSecurityPolicy = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline' 'unsafe-eval';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.profitablecpmratenetwork.com https://*.preferencemail.com https://*.adsterra.com https://pl29414289.profitablecpmratenetwork.com https://pl29414067.profitablecpmratenetwork.com;
+  script-src-elem 'self' 'unsafe-inline' https://*.profitablecpmratenetwork.com https://*.preferencemail.com https://*.adsterra.com https://pl29414289.profitablecpmratenetwork.com https://pl29414067.profitablecpmratenetwork.com;
   style-src 'self' 'unsafe-inline';
-  img-src 'self' data: blob: https:;
+  img-src 'self' data: blob: https: https://*.profitablecpmratenetwork.com https://*.preferencemail.com https://*.adsterra.com;
   font-src 'self' data:;
-  connect-src 'self' https:;
+  connect-src 'self' https: https://*.profitablecpmratenetwork.com https://*.preferencemail.com https://*.adsterra.com;
+  frame-src 'self' https://*.profitablecpmratenetwork.com https://*.preferencemail.com https://*.adsterra.com;
   frame-ancestors 'none';
   base-uri 'self';
   form-action 'self';
