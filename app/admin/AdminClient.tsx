@@ -6,7 +6,7 @@ import { getSupabaseClient } from "@/lib/supabaseClient"
 import DashboardClient from "@/app/dashboard/DashboardClient"
 import UsageAnalytics from "@/components/UsageAnalytics"
 import { getAllUsersUsage } from "@/lib/actions/usage"
-import { ShieldCheck, Users, Activity, BarChart3, AlertTriangle, ArrowLeft } from "lucide-react"
+import { ShieldCheck, Users, AlertTriangle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 
@@ -102,39 +102,6 @@ export default function PortalClient() {
               <span className="text-[10px] sm:text-sm font-semibold text-indigo-700 whitespace-nowrap">{data.length} Active Users</span>
             </div>
           </div>
-        </div>
-
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <motion.div 
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 300, damping: 15 }}
-            className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-blue-50"
-          >
-            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 text-blue-600">
-              <Activity className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-[10px] sm:text-sm font-bold uppercase tracking-wider">Total Tokens</span>
-            </div>
-            <p className="text-2xl sm:text-3xl font-black text-gray-900 truncate">
-              {data.reduce((acc, curr) => acc + curr.total_tokens, 0).toLocaleString()}
-            </p>
-          </motion.div>
-
-          <motion.div 
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 300, damping: 15 }}
-            className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-cyan-50"
-          >
-            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 text-cyan-600">
-              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-[10px] sm:text-sm font-bold uppercase tracking-wider">Avg Usage</span>
-            </div>
-            <p className="text-2xl sm:text-3xl font-black text-gray-900 truncate">
-              {data.length > 0 
-                ? Math.round(data.reduce((acc, curr) => acc + curr.total_tokens, 0) / data.length).toLocaleString() 
-                : 0}
-            </p>
-          </motion.div>
         </div>
 
         {/* The Chart */}
