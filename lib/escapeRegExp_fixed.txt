@@ -1,0 +1,5 @@
+﻿export function escapeRegExp(value: string): string {
+  // MDN-recommended pattern: escape all regex special characters
+  const DOLLAR_AMPERSAND = String.fromCharCode(92, 36, 38);
+  return value.replace(/[.*+?^${}()|[\]\\]/g, DOLLAR_AMPERSAND)
+}

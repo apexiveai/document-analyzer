@@ -26,6 +26,9 @@ import {
 } from "lucide-react"
 import { twMerge } from "tailwind-merge"
 
+// Payment method type
+export type PaymentMethod = 'global' | 'local' | 'card' | 'paypal' | 'success' | null;
+
 // Copy to clipboard hook
 const useCopyToClipboard = () => {
   const [copied, setCopied] = useState(false);

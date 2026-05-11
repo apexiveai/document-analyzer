@@ -159,14 +159,14 @@ export default function PaymentModal({ children }: PaymentModalProps) {
         />
 
         <div className="fixed inset-0 flex items-center justify-center p-3 sm:p-4">
-          <Dialog.Panel 
-            as={motion.div}
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.2 }}
-            className="w-full max-w-md max-h-[95vh] sm:max-h-[90vh] rounded-2xl bg-white shadow-2xl overflow-hidden border border-gray-100 flex flex-col relative"
-          >
+          <Dialog.Panel className="w-full max-w-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-h-[95vh] sm:max-h-[90vh] rounded-2xl bg-white shadow-2xl overflow-hidden border border-gray-100 flex flex-col relative"
+            >
             {/* Header */}
             <motion.div 
               layout
@@ -257,6 +257,7 @@ export default function PaymentModal({ children }: PaymentModalProps) {
                 <SupportWidget onOpenChat={handleSupportChat} />
               )}
             </AnimatePresence>
+            </motion.div>
           </Dialog.Panel>
         </div>
       </Dialog>
