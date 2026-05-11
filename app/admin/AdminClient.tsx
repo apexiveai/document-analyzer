@@ -84,13 +84,13 @@ export default function PortalClient() {
             <div>
               <div className="flex items-center gap-2 sm:gap-3">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900 text-nowrap">System Console</h2>
-                <Link
+                {/* <Link
                   href="/dashboard"
                   className="inline-flex items-center gap-1 text-[10px] sm:text-sm text-gray-500 hover:text-indigo-600 transition-colors group whitespace-nowrap"
                 >
                   <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4 group-hover:-translate-x-0.5 transition-transform" />
                   <span>Exit Console</span>
-                </Link>
+                </Link> */}
               </div>
               <p className="text-[10px] sm:text-sm text-gray-500">System-wide usage and user analytics</p>
             </div>
