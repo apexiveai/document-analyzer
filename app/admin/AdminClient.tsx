@@ -11,6 +11,7 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 
 const CORE_IDENTITY = process.env.NEXT_PUBLIC_ADMIN_EMAIL
+const normalizeEmail = (email?: string | null) => (email ?? "").trim().toLowerCase()
 
 interface UsageData {
   email: string
@@ -29,7 +30,7 @@ export default function PortalClient() {
         const supabase = getSupabaseClient()
         const { data: { user } } = await supabase.auth.getUser()
 
-        if (!user || user.email !== CORE_IDENTITY) {
+        if (!user || normalizeEmail(user.email) !== normalizeEmail(CORE_IDENTITY)) {
           setIsAuthorized(false)
           // Don't push to dashboard, let the UI show access denied
           return

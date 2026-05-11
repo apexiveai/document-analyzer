@@ -9,7 +9,6 @@ export default function ScrollToTop() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Prevent browser from restoring old scroll positions after refresh/back.
     if ("scrollRestoration" in window.history) {
       window.history.scrollRestoration = "manual";
     }

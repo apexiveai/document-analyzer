@@ -128,7 +128,9 @@ export function sanitizeFilename(value: unknown): string {
  */
 export function escapeRegExp(value: string): string {
   // MDN-recommended pattern: escape all regex special characters
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  // Using String.fromCharCode to construct '\$&' to avoid corruption
+  const REPLACEMENT = String.fromCharCode(92, 36, 38); // '\$&'
+  return value.replace(/[.*+?^${}()|[\]\\]/g, REPLACEMENT)
 }
 
 // ─── Audit content sanitization ───────────────────────────────────────────────

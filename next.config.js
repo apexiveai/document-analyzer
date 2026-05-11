@@ -21,7 +21,7 @@
  *                                 (used by some chart libs), blobs, and HTTPS.
  *   font-src    'self' data:    — Google Fonts loaded locally via next/font.
  *   connect-src 'self' https:   — Fetch/XHR to same origin and HTTPS APIs
- *                                 (Supabase, AI providers, Lemon Squeezy).
+ *                                 (Supabase, AI providers).
  *   frame-ancestors 'none'      — Prevents clickjacking (equivalent to
  *                                 X-Frame-Options: DENY).
  *   base-uri    'self'          — Prevents base-tag injection.

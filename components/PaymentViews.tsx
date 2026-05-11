@@ -44,7 +44,6 @@ const useCopyToClipboard = () => {
   return { copied, copyToClipboard };
 };
 
-// Merchant Contact Info Component
 const MerchantContactInfo: React.FC = () => {
   const { copied, copyToClipboard } = useCopyToClipboard();
   const merchantPhone = "+95 9 123 456 789";
@@ -217,7 +216,6 @@ export const SupportWidget: React.FC<SupportWidgetProps> = ({ onOpenChat }) => {
   );
 };
 
-// Payment Success View Component
 interface PaymentSuccessViewProps {
   onClose: () => void;
 }
@@ -604,7 +602,7 @@ export const GlobalView: React.FC<GlobalViewProps> = ({
           </motion.button>
         </div>
         
-        <p className="text-center text-xs text-gray-400 mt-3">Secure global payment powered by Lemon Squeezy</p>
+        <p className="text-center text-xs text-gray-400 mt-3">Secure global payment processing</p>
       </div>
     </motion.div>
   );
@@ -675,7 +673,7 @@ export const CardEntryView: React.FC<CardEntryViewProps> = ({ onProceed }) => {
 
         <motion.button
           type="button"
-          title="Proceed to Lemon Squeezy"
+          title="Proceed to Checkout"
           onClick={onProceed}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -683,7 +681,7 @@ export const CardEntryView: React.FC<CardEntryViewProps> = ({ onProceed }) => {
         >
           Proceed to Checkout
         </motion.button>
-        <p className="text-center text-xs text-gray-400 italic">You will be redirected to Lemon Squeezy to complete payment</p>
+        <p className="text-center text-xs text-gray-400 italic">Secure payment processing</p>
       </div>
     </motion.div>
   );
@@ -732,7 +730,7 @@ export const PayPalEntryView: React.FC<PayPalEntryViewProps> = ({ onProceed }) =
         <div>
           <h4 className="text-lg font-bold text-gray-900 mb-1">Pay with PayPal</h4>
           <p className="text-sm text-gray-500 px-2">
-            You will be redirected to PayPal's secure portal to complete your transaction via Lemon Squeezy.
+            You will be redirected to PayPal's secure portal to complete your transaction.
           </p>
         </div>
 

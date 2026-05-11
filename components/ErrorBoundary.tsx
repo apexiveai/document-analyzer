@@ -33,7 +33,6 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     this.setState({ errorInfo })
     
-    // Send to monitoring — imports lazily to avoid circular deps
     import('@/lib/globalErrorHandler').then(({ monitor }) => {
       monitor.capture(error, 'ErrorBoundary', {
         componentStack: errorInfo.componentStack ?? undefined,
@@ -61,7 +60,6 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render(): ReactNode {
     if (this.state.hasError) {
-      // Custom fallback UI
       if (this.props.fallback) {
         return this.props.fallback
       }
@@ -148,7 +146,6 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-// Higher-order component for error boundary
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
   errorBoundaryProps?: Partial<Props>
@@ -162,7 +159,6 @@ export function withErrorBoundary<P extends object>(
   }
 }
 
-// Hook for error handling in functional components
 export function useErrorHandler() {
   const [error, setError] = React.useState<Error | null>(null)
 

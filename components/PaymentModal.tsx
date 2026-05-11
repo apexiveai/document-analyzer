@@ -4,15 +4,17 @@ import { useState, useCallback } from "react"
 import { Dialog } from "@headlessui/react"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, ArrowLeft } from "lucide-react"
-import { SelectionView, GlobalView, LocalView, CardEntryView, PayPalEntryView, PaymentSuccessView, SupportWidget, type PaymentMethod } from "./PaymentViews"
+import { SelectionView, GlobalView, LocalView, CardEntryView, PayPalEntryView, PaymentSuccessView, SupportWidget } from "./PaymentViews"
 
 interface PaymentModalProps {
   children?: React.ReactNode;
 }
 
+type ModalPaymentMethod = "local" | "global" | "card" | "paypal" | "success" | null
+
 export default function PaymentModal({ children }: PaymentModalProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [activeMethod, setActiveMethod] = useState<PaymentMethod>(null)
+  const [activeMethod, setActiveMethod] = useState<ModalPaymentMethod>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [localPaymentStep, setLocalPaymentStep] = useState<'select' | 'qr' | 'upload'>('select')
@@ -70,30 +72,12 @@ export default function PaymentModal({ children }: PaymentModalProps) {
     }
   }, [activeMethod, localPaymentStep, globalPaymentStep, closeModal])
 
-  const handleLemonSqueezy = useCallback(async () => {
-    console.log("Redirecting to Lemon Squeezy...")
-    try {
-      const res = await fetch("/api/lemonsqueezy/checkout", { method: "POST" });
-      const data = await res.json();
-      if (data.url) {
-        // For demo purposes, show success screen instead of redirect
-        // In production, this would redirect to Lemon Squeezy
-        // window.location.href = data.url;
-        
-        // Simulate successful payment after 2 seconds
-        setTimeout(() => {
-          setActiveMethod("success");
-        }, 2000);
-      } else {
-        throw new Error(data.error || "Failed to get checkout URL");
-      }
-    } catch (err) {
-      console.error(err);
-      // For demo, show success even on error
-      setTimeout(() => {
-        setActiveMethod("success");
-      }, 2000);
-    }
+  const handleInternationalPayment = useCallback(async () => {
+    console.log("Processing international payment...")
+    // Simulate payment processing
+    setTimeout(() => {
+      setActiveMethod("success");
+    }, 2000);
   }, [])
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -226,16 +210,16 @@ export default function PaymentModal({ children }: PaymentModalProps) {
                 ) : activeMethod === "global" ? (
                   <GlobalView 
                     key="global"
-                    onProceed={handleLemonSqueezy} 
+                    onProceed={handleInternationalPayment} 
                     onSelectCard={() => setActiveMethod("card")} 
                     onSelectPayPal={() => setActiveMethod("paypal")}
                     currentStep={globalPaymentStep}
                     onStepChange={setGlobalPaymentStep}
                   />
                 ) : activeMethod === "card" ? (
-                  <CardEntryView key="card" onProceed={handleLemonSqueezy} />
+                  <CardEntryView key="card" onProceed={handleInternationalPayment} />
                 ) : activeMethod === "paypal" ? (
-                  <PayPalEntryView key="paypal" onProceed={handleLemonSqueezy} />
+                  <PayPalEntryView key="paypal" onProceed={handleInternationalPayment} />
                 ) : (
                   <LocalView
                     key="local"

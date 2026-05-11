@@ -70,7 +70,8 @@ export default function DashboardClient({ children }: { children?: ReactNode }) 
   const QUERY_TIMEOUT_MS = 10000 // 10 second timeout
 
   const CORE_IDENTITY = process.env.NEXT_PUBLIC_ADMIN_EMAIL
-  const isManager = user?.email === CORE_IDENTITY
+  const normalizeEmail = (email?: string | null) => (email ?? "").trim().toLowerCase()
+  const isManager = normalizeEmail(user?.email) === normalizeEmail(CORE_IDENTITY)
   const isCoreView = pathname === "/admin"
 
   const fetchQuota = useCallback(async () => {

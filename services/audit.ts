@@ -9,9 +9,7 @@ import {
   retryWithBackoff
 } from "@/lib/errorHandling"
 
-/**
- * Strip code fence markers (```json ... ```) from AI responses
- */
+
 function stripCodeFences(s: string): string {
   return s.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim()
 }
