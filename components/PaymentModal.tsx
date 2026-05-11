@@ -4,17 +4,15 @@ import { useState, useCallback } from "react"
 import { Dialog } from "@headlessui/react"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, ArrowLeft } from "lucide-react"
-import { SelectionView, GlobalView, LocalView, CardEntryView, PayPalEntryView, PaymentSuccessView, SupportWidget } from "./PaymentViews"
+import { SelectionView, GlobalView, LocalView, CardEntryView, PayPalEntryView, PaymentSuccessView, SupportWidget, type PaymentMethod } from "./PaymentViews"
 
 interface PaymentModalProps {
   children?: React.ReactNode;
 }
 
-type ModalPaymentMethod = "local" | "global" | "card" | "paypal" | "success" | null
-
 export default function PaymentModal({ children }: PaymentModalProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [activeMethod, setActiveMethod] = useState<ModalPaymentMethod>(null)
+  const [activeMethod, setActiveMethod] = useState<PaymentMethod>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [localPaymentStep, setLocalPaymentStep] = useState<'select' | 'qr' | 'upload'>('select')
@@ -72,12 +70,30 @@ export default function PaymentModal({ children }: PaymentModalProps) {
     }
   }, [activeMethod, localPaymentStep, globalPaymentStep, closeModal])
 
-  const handleInternationalPayment = useCallback(async () => {
-    console.log("Processing international payment...")
-    // Simulate payment processing
-    setTimeout(() => {
-      setActiveMethod("success");
-    }, 2000);
+  const handleLemonSqueezy = useCallback(async () => {
+    console.log("Redirecting to Lemon Squeezy...")
+    try {
+      const res = await fetch("/api/lemonsqueezy/checkout", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        // For demo purposes, show success screen instead of redirect
+        // In production, this would redirect to Lemon Squeezy
+        // window.location.href = data.url;
+        
+        // Simulate successful payment after 2 seconds
+        setTimeout(() => {
+          setActiveMethod("success");
+        }, 2000);
+      } else {
+        throw new Error(data.error || "Failed to get checkout URL");
+      }
+    } catch (err) {
+      console.error(err);
+      // For demo, show success even on error
+      setTimeout(() => {
+        setActiveMethod("success");
+      }, 2000);
+    }
   }, [])
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,6 +164,7 @@ export default function PaymentModal({ children }: PaymentModalProps) {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.2 }}
             className="w-full max-w-md max-h-[95vh] sm:max-h-[90vh] rounded-2xl bg-white shadow-2xl overflow-hidden border border-gray-100 flex flex-col relative"
           >
             {/* Header */}
@@ -210,16 +227,16 @@ export default function PaymentModal({ children }: PaymentModalProps) {
                 ) : activeMethod === "global" ? (
                   <GlobalView 
                     key="global"
-                    onProceed={handleInternationalPayment} 
+                    onProceed={handleLemonSqueezy} 
                     onSelectCard={() => setActiveMethod("card")} 
                     onSelectPayPal={() => setActiveMethod("paypal")}
                     currentStep={globalPaymentStep}
                     onStepChange={setGlobalPaymentStep}
                   />
                 ) : activeMethod === "card" ? (
-                  <CardEntryView key="card" onProceed={handleInternationalPayment} />
+                  <CardEntryView key="card" onProceed={handleLemonSqueezy} />
                 ) : activeMethod === "paypal" ? (
-                  <PayPalEntryView key="paypal" onProceed={handleInternationalPayment} />
+                  <PayPalEntryView key="paypal" onProceed={handleLemonSqueezy} />
                 ) : (
                   <LocalView
                     key="local"

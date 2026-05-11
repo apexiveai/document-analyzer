@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Share2, Copy, Check, X, Link as LinkIcon } from "lucide-react"
 
@@ -13,13 +13,7 @@ export default function ShareResults({ documentId, documentTitle }: ShareResults
   const [isOpen, setIsOpen] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  // Compute shareUrl safely - only access window in the browser
-  const shareUrl = useMemo(() => {
-    if (typeof window === 'undefined') {
-      return '' // Return empty string during SSR
-    }
-    return `${window.location.origin}/dashboard/${documentId}`
-  }, [documentId])
+  const shareUrl = `${window.location.origin}/dashboard/${documentId}`
 
   const handleCopyLink = async () => {
     try {

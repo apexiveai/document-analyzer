@@ -47,6 +47,7 @@ export async function POST(req: Request) {
     return createSafeJsonResponse({ error: "Unauthorized" }, 401, requestId, rateLimit)
   }
 
+  // Quota check
   const quota = await checkUserQuota(user.id)
   if (!quota.allowed) {
     return createSafeJsonResponse(

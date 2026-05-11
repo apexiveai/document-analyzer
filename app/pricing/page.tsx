@@ -1,11 +1,4 @@
-import dynamic from "next/dynamic"
-import PaymentModal from "@/components/PaymentModal"
-
-const UpgradeButton = dynamic(() => import("@/components/UpgradeButton"), {
-  loading: () => (
-    <div className="h-10 w-32 bg-purple-200 rounded-lg animate-pulse" />
-  ),
-})
+import UpgradeButton from "@/components/UpgradeButton"
 
 export default function PricingPage() {
   return (
@@ -40,9 +33,7 @@ export default function PricingPage() {
           </ul>
 
           <div className="mt-6">
-            <PaymentModal>
-              <UpgradeButton />
-            </PaymentModal>
+            <UpgradeButton />
           </div>
         </div>
       </div>

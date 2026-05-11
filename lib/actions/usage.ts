@@ -1,13 +1,31 @@
 "use server"
 
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "../supabaseServer";
-import { createAdminClient } from "../supabaseadmin";
 import { PLANS, PlanKey } from "../billing/plans";
 
-const CORE_IDENTITY = process.env.ADMIN_EMAIL;
+const CORE_IDENTITY = "sdd@gmail.com";
+
+let supabaseClient: SupabaseClient | null = null;
+
+function getSupabaseAdminClient() {
+  if (!supabaseClient) {
+    supabaseClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+  }
+  return supabaseClient;
+}
 
 export async function getUserTotalUsage(userId?: string) {
-  const supabase = createAdminClient();
+  const supabase = getSupabaseAdminClient();
   
   const query = supabase
     .from("documents")
@@ -29,7 +47,7 @@ export async function getUserTotalUsage(userId?: string) {
 }
 
 export async function checkUserQuota(userId: string) {
-  const supabase = createAdminClient();
+  const supabase = getSupabaseAdminClient();
 
   // 1. Get user plan
   const { data: profile, error: profileError } = await supabase
@@ -58,7 +76,7 @@ export async function checkUserQuota(userId: string) {
 }
 
 export async function getUserUsageStats(userId: string) {
-  const supabase = createAdminClient();
+  const supabase = getSupabaseAdminClient();
 
   const { data, error } = await supabase
     .from("usage_logs")
@@ -77,11 +95,6 @@ export async function getUserUsageStats(userId: string) {
 }
 
 export async function getAllUsersUsage() {
-  // Fail fast if admin email is not configured
-  if (!CORE_IDENTITY) {
-    throw new Error("ADMIN_EMAIL environment variable is not set")
-  }
-
   // Server-side security check
   const serverSupabase = await createSupabaseServerClient();
   const { data: { user } } = await serverSupabase.auth.getUser();
@@ -90,7 +103,7 @@ export async function getAllUsersUsage() {
     throw new Error("Unauthorized: System access only");
   }
 
-  const supabase = createAdminClient();
+  const supabase = getSupabaseAdminClient();
 
   // 1. Fetch all users from auth
   const { data: { users }, error: authError } = await supabase.auth.admin.listUsers();

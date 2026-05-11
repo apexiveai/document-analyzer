@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { Upload, FileText, CheckCircle, X, Image as ImageIcon, Shield, Truck } from "lucide-react"
 import { useToast } from "@/components/ui/Toast"
 import { motion } from "framer-motion"
-import { useApiErrorHandler, safeFetch } from "@/lib/apiErrorHandler"
 
 const MAX_BYTES = 10 * 1024 * 1024
 const ACCEPTED_TYPES = {
@@ -104,107 +103,77 @@ export default function FileUploader({ onUploadSuccess }: { onUploadSuccess?: ()
     void handleFileSelect(file)
   }
 
-  const { handleApiError, handleNetworkError } = useApiErrorHandler()
+  const uploadFile = (file: File): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const formData = new FormData()
+      formData.append("file", file)
 
-  const uploadFile = async (file: File): Promise<void> => {
-    const formData = new FormData()
-    formData.append("file", file)
-
-    if (isAuditMode) {
-      formData.append("documentType", documentType)
-    }
-
-    setLoading(true)
-    setUploadStatus("uploading")
-    setUploadProgress(0)
-
-    const endpoint = isAuditMode ? "/api/audit" : "/api/upload"
-    let progressInterval: NodeJS.Timeout | null = null
-    
-    try {
-      // Simulate progress for better UX
-      progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            if (progressInterval) {
-              clearInterval(progressInterval)
-            }
-            return prev
-          }
-          return prev + 10
-        })
-      }, 300)
-
-      const { data, error } = await safeFetch(endpoint, {
-        method: "POST",
-        body: formData,
-        credentials: "include"
-      }, {
-        context: "File Upload",
-        timeout: 60000,
-        retries: 2
-      })
-
-      if (progressInterval) {
-        clearInterval(progressInterval)
+      if (isAuditMode) {
+        formData.append("documentType", documentType)
       }
-      setUploadProgress(100)
 
-      if (error) {
-        if (error.code === 'HTTP_401') {
-          router.push("/login")
-          throw new Error("Unauthorized")
+      setLoading(true)
+      setUploadStatus("uploading")
+      setUploadProgress(0)
+
+      const endpoint = isAuditMode ? "/api/audit" : "/api/upload"
+      const xhr = new XMLHttpRequest()
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100)
+          setUploadProgress(progress)
         }
-        
-        handleApiError(error, "File upload", {
-          showToast: true,
-          fallbackMessage: `Upload failed: ${error.error}`
-        })
-        
-        setUploadStatus("error")
-        setErrorDetail(error.error)
-        setLoading(false)
-        throw new Error(error.error)
       }
 
-      if (!data) {
-        const errorMsg = "No response data received"
-        handleApiError({ error: errorMsg }, "File upload", {
-          showToast: true,
-          fallbackMessage: errorMsg
-        })
-        
+      xhr.onload = () => {
+        if (xhr.status === 401) {
+          router.push("/login")
+          setLoading(false)
+          reject(new Error("Unauthorized"))
+          return
+        }
+
+        const text = xhr.responseText
+        let data: { id?: string; audit?: Record<string, unknown>; documentId?: string; error?: string; success?: boolean } | null
+        try {
+          data = text ? JSON.parse(text) : null
+        } catch {
+          data = { error: text || "Invalid JSON response from upload API" }
+        }
+
+        if (xhr.status >= 200 && xhr.status < 300 && data) {
+          setUploadStatus("success")
+          setUploadProgress(100)
+          showToast("Document uploaded successfully!", "success")
+          if (onUploadSuccess) {
+            onUploadSuccess()
+          }
+          setLoading(false)
+          resolve()
+        } else {
+          const errorMsg = data?.error ?? `Upload failed (${xhr.status})`
+          setUploadStatus("error")
+          setErrorDetail(errorMsg)
+          showToast(errorMsg, "error")
+          setLoading(false)
+          reject(new Error(errorMsg))
+        }
+      }
+
+      xhr.onerror = () => {
         setUploadStatus("error")
+        const errorMsg = "Network error during upload"
         setErrorDetail(errorMsg)
+        showToast(errorMsg, "error")
         setLoading(false)
-        throw new Error(errorMsg)
+        reject(new Error(errorMsg))
       }
 
-      setUploadStatus("success")
-      showToast("Document uploaded successfully!", "success")
-      
-      if (onUploadSuccess) {
-        onUploadSuccess()
-      }
-      
-      setLoading(false)
-      
-    } catch (error) {
-      if (progressInterval) {
-        clearInterval(progressInterval)
-      }
-      
-      if (error instanceof Error && error.message === "Unauthorized") {
-        // Already handled by safeFetch
-        return
-      }
-      
-      handleNetworkError(error, "File upload")
-      setUploadStatus("error")
-      setErrorDetail(error instanceof Error ? error.message : "Network error during upload")
-      setLoading(false)
-      throw error
-    }
+      xhr.open("POST", endpoint, true)
+      xhr.withCredentials = true
+      xhr.send(formData)
+    })
   }
 
   return (

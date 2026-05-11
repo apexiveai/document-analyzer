@@ -1,18 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk"
 import OpenAI from "openai"
-import { 
-  AppError, 
-  ValidationError, 
-  AuthenticationError, 
-  ExternalServiceError,
-  RateLimitError,
-  retryWithBackoff
-} from "@/lib/errorHandling"
-
-
-function stripCodeFences(s: string): string {
-  return s.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim()
-}
 
 export interface AuditHighlight {
   excerpt: string
@@ -193,6 +180,10 @@ Return JSON only, no markdown fences:
 
 Document:
 `
+
+function stripCodeFences(s: string) {
+  return s.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim()
+}
 
 function sanitizeExcerpt(value: unknown): string {
   if (typeof value !== "string") {
@@ -406,7 +397,7 @@ function getAIProvider() {
   if (provider === "anthropic") {
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey) {
-      throw new ValidationError("ANTHROPIC_API_KEY is not set")
+      throw new Error("ANTHROPIC_API_KEY is not set")
     }
     return {
       client: new Anthropic({ apiKey }),
@@ -415,7 +406,7 @@ function getAIProvider() {
   } else {
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
-      throw new ValidationError("OPENAI_API_KEY is not set")
+      throw new Error("OPENAI_API_KEY is not set")
     }
     return {
       client: new OpenAI({ apiKey }),
@@ -425,20 +416,6 @@ function getAIProvider() {
 }
 
 async function analyzeWithAI(prompt: string, text: string): Promise<{ data: Record<string, unknown>; usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number } }> {
-  return retryWithBackoff(
-    () => _analyzeWithAI(prompt, text),
-    {
-      maxRetries: 3,
-      baseDelay: 1000,
-      maxDelay: 15_000,
-      onRetry: (error, attempt, delayMs) => {
-        console.warn(`[analyzeWithAI] Retry ${attempt}/3 after ${Math.round(delayMs)}ms — ${error.message}`)
-      }
-    }
-  )
-}
-
-async function _analyzeWithAI(prompt: string, text: string): Promise<{ data: Record<string, unknown>; usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number } }> {
   const { client, model } = getAIProvider()
   const fullPrompt = `${prompt}${text.slice(0, 50000)}` // Limit input size
 
@@ -451,23 +428,13 @@ async function _analyzeWithAI(prompt: string, text: string): Promise<{ data: Rec
         messages: [{ role: "user", content: fullPrompt }]
       })
       const raw = response.content[0].type === 'text' ? response.content[0].text : ''
-      
-      try {
-        const parsedData = JSON.parse(stripCodeFences(raw))
-        return {
-          data: parsedData,
-          usage: {
-            prompt_tokens: response.usage?.input_tokens || 0,
-            completion_tokens: response.usage?.output_tokens || 0,
-            total_tokens: (response.usage?.input_tokens || 0) + (response.usage?.output_tokens || 0)
-          }
+      return {
+        data: JSON.parse(stripCodeFences(raw)),
+        usage: {
+          prompt_tokens: response.usage?.input_tokens || 0,
+          completion_tokens: response.usage?.output_tokens || 0,
+          total_tokens: (response.usage?.input_tokens || 0) + (response.usage?.output_tokens || 0)
         }
-      } catch (parseError) {
-        console.error('Failed to parse AI response:', parseError)
-        throw new Error(
-          `AI returned invalid JSON: ${parseError instanceof Error ? parseError.message : 'Unknown parse error'}`,
-          { cause: parseError }
-        )
       }
     } else {
       const response = await client.chat.completions.create({
@@ -477,54 +444,18 @@ async function _analyzeWithAI(prompt: string, text: string): Promise<{ data: Rec
         max_tokens: 4000
       })
       const raw = response.choices[0]?.message?.content || ''
-      
-      try {
-        const parsedData = JSON.parse(stripCodeFences(raw))
-        return {
-          data: parsedData,
-          usage: {
-            prompt_tokens: response.usage?.prompt_tokens || 0,
-            completion_tokens: response.usage?.completion_tokens || 0,
-            total_tokens: response.usage?.total_tokens || 0
-          }
+      return {
+        data: JSON.parse(stripCodeFences(raw)),
+        usage: {
+          prompt_tokens: response.usage?.prompt_tokens || 0,
+          completion_tokens: response.usage?.completion_tokens || 0,
+          total_tokens: response.usage?.total_tokens || 0
         }
-      } catch (parseError) {
-        console.error('Failed to parse AI response:', parseError)
-        throw new Error(
-          `AI returned invalid JSON: ${parseError instanceof Error ? parseError.message : 'Unknown parse error'}`,
-          { cause: parseError }
-        )
       }
     }
   } catch (error) {
     console.error('AI analysis failed:', error)
-    
-    // Provide more specific error messages using AppError classes
-    if (error instanceof Error) {
-      if (error.message.includes('API key') || error.message.includes('authentication')) {
-        throw new AuthenticationError(
-          `AI API authentication failed: ${error.message}`
-        )
-      } else if (error.message.includes('rate limit') || error.message.includes('quota')) {
-        throw new RateLimitError(
-          `AI API rate limit exceeded: ${error.message}`
-        )
-      } else if (error.message.includes('timeout') || error.message.includes('network')) {
-        throw new ExternalServiceError(
-          'AI API',
-          `Network error: ${error.message}`
-        )
-      } else if (error.message.includes('invalid JSON')) {
-        throw new ValidationError(
-          `AI returned invalid JSON response: ${error.message}`
-        )
-      }
-    }
-    
-    throw new ExternalServiceError(
-      'AI',
-      `Failed to analyze document: ${error instanceof Error ? error.message : 'Unknown error'}`
-    )
+    throw new Error('Failed to analyze document with AI')
   }
 }
 

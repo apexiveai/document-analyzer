@@ -10,8 +10,7 @@ import { ShieldCheck, Users, Activity, BarChart3, AlertTriangle, ArrowLeft } fro
 import Link from "next/link"
 import { motion } from "framer-motion"
 
-const CORE_IDENTITY = process.env.NEXT_PUBLIC_ADMIN_EMAIL
-const normalizeEmail = (email?: string | null) => (email ?? "").trim().toLowerCase()
+const CORE_IDENTITY = "sdd@gmail.com"
 
 interface UsageData {
   email: string
@@ -30,7 +29,7 @@ export default function PortalClient() {
         const supabase = getSupabaseClient()
         const { data: { user } } = await supabase.auth.getUser()
 
-        if (!user || normalizeEmail(user.email) !== normalizeEmail(CORE_IDENTITY)) {
+        if (!user || user.email !== CORE_IDENTITY) {
           setIsAuthorized(false)
           // Don't push to dashboard, let the UI show access denied
           return
@@ -85,6 +84,13 @@ export default function PortalClient() {
             <div>
               <div className="flex items-center gap-2 sm:gap-3">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900 text-nowrap">System Console</h2>
+                <Link
+                  href="/dashboard"
+                  className="inline-flex items-center gap-1 text-[10px] sm:text-sm text-gray-500 hover:text-indigo-600 transition-colors group whitespace-nowrap"
+                >
+                  <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4 group-hover:-translate-x-0.5 transition-transform" />
+                  <span>Exit Console</span>
+                </Link>
               </div>
               <p className="text-[10px] sm:text-sm text-gray-500">System-wide usage and user analytics</p>
             </div>

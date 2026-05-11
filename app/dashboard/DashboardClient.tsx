@@ -61,36 +61,19 @@ export default function DashboardClient({ children }: { children?: ReactNode }) 
   const [authError, setAuthError] = useState<string>("")
   const [documents, setDocuments] = useState<DocumentRecord[]>([])
   const [documentsLoading, setDocumentsLoading] = useState(false)
-  const [documentsError, setDocumentsError] = useState<string>("")
   const [quota, setQuota] = useState<QuotaInfo | null>(null)
-  const [quotaError, setQuotaError] = useState<string>("")
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const DOCUMENTS_PER_PAGE = 10
-  const QUERY_TIMEOUT_MS = 10000 // 10 second timeout
 
-  const CORE_IDENTITY = process.env.NEXT_PUBLIC_ADMIN_EMAIL
-  const normalizeEmail = (email?: string | null) => (email ?? "").trim().toLowerCase()
-  const isManager = normalizeEmail(user?.email) === normalizeEmail(CORE_IDENTITY)
+  const CORE_IDENTITY = "sdd@gmail.com"
+  const isManager = user?.email === CORE_IDENTITY
   const isCoreView = pathname === "/admin"
 
   const fetchQuota = useCallback(async () => {
     if (!user) return
-    
-    setQuotaError("")
-    const timeoutId = setTimeout(() => {
-      setQuotaError("Request timed out. Please try again.")
-    }, QUERY_TIMEOUT_MS)
-    
-    try {
-      const info = await checkUserQuota(user.id)
-      clearTimeout(timeoutId)
-      setQuota(info as unknown as QuotaInfo)
-    } catch (error) {
-      clearTimeout(timeoutId)
-      console.error("Error fetching quota:", error)
-      setQuotaError("Failed to load quota information")
-    }
+    const info = await checkUserQuota(user.id)
+    setQuota(info as unknown as QuotaInfo)
   }, [user])
 
   useEffect(() => {
@@ -148,14 +131,6 @@ export default function DashboardClient({ children }: { children?: ReactNode }) 
     if (!user || !hasSupabasePublicEnv()) return
 
     setDocumentsLoading(true)
-    setDocumentsError("")
-    
-    // Create AbortController for timeout
-    const abortController = new AbortController()
-    const timeoutId = setTimeout(() => {
-      abortController.abort()
-    }, QUERY_TIMEOUT_MS)
-    
     try {
       const supabaseClient = getSupabaseClient()
       const from = (page - 1) * DOCUMENTS_PER_PAGE
@@ -167,13 +142,9 @@ export default function DashboardClient({ children }: { children?: ReactNode }) 
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .range(from, to)
-        .abortSignal(abortController.signal)
-
-      clearTimeout(timeoutId)
 
       if (error) {
         console.error("Error fetching documents:", error)
-        setDocumentsError("Failed to load documents. Please try again.")
         return
       }
 
@@ -183,14 +154,7 @@ export default function DashboardClient({ children }: { children?: ReactNode }) 
       }
       setCurrentPage(page)
     } catch (error) {
-      clearTimeout(timeoutId)
       console.error("Error fetching documents:", error)
-      
-      if (error instanceof Error && error.name === "AbortError") {
-        setDocumentsError("Request timed out. Please check your connection and try again.")
-      } else {
-        setDocumentsError("Failed to load documents. Please try again.")
-      }
     } finally {
       setDocumentsLoading(false)
     }
@@ -511,18 +475,6 @@ export default function DashboardClient({ children }: { children?: ReactNode }) 
                   </p>
                 </div>
               )}
-              
-              {quotaError && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-700 mb-2">{quotaError}</p>
-                  <button
-                    onClick={() => { void fetchQuota() }}
-                    className="text-xs font-medium text-red-600 hover:text-red-800 underline"
-                  >
-                    Retry
-                  </button>
-                </div>
-              )}
             </motion.div>
 
         <motion.div 
@@ -559,17 +511,6 @@ export default function DashboardClient({ children }: { children?: ReactNode }) 
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
               <span className="ml-2 text-gray-600">Loading documents...</span>
-            </div>
-          ) : documentsError ? (
-            <div className="border-2 border-red-200 bg-red-50 rounded-xl p-8 text-center">
-              <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-              <p className="text-red-700 text-lg font-semibold mb-2">{documentsError}</p>
-              <button
-                onClick={() => { void fetchDocuments(currentPage) }}
-                className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
-              >
-                Retry
-              </button>
             </div>
           ) : documents.length > 0 ? (
             <div className="space-y-4">

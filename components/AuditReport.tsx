@@ -2,7 +2,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AuditHighlight, AuditResult } from "@/services/audit"
-import { escapeRegExp, sanitizeAuditText } from "@/lib/sanitize"
 
 interface AuditReportProps {
   audit: AuditResult
@@ -11,6 +10,8 @@ interface AuditReportProps {
 
 export default function AuditReport({ audit, text }: AuditReportProps) {
   const highlights = audit.highlights ?? []
+
+  const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
   const getHighlightClasses = (level: AuditHighlight["level"]) => {
     if (level === "critical") {
@@ -119,8 +120,8 @@ export default function AuditReport({ audit, text }: AuditReportProps) {
   const compliantCount = highlights.filter((item) => item.level === 'compliant').length
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border-red-200">
           <CardHeader>
             <CardTitle className="text-red-600 flex items-center gap-2">
@@ -167,23 +168,23 @@ export default function AuditReport({ audit, text }: AuditReportProps) {
           <CardTitle>Audit Summary</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-700 leading-relaxed">{sanitizeAuditText(audit.summary)}</p>
+          <p className="text-gray-700 leading-relaxed">{audit.summary}</p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-            <div className={`w-4 h-4 rounded-full flex-shrink-0 ${
+          <CardTitle className="flex items-center gap-2">
+            <div className={`w-4 h-4 rounded-full ${
               audit.compliance.status === 'compliant' ? 'bg-green-500' :
               audit.compliance.status === 'non_compliant' ? 'bg-red-500' : 'bg-yellow-500'
             }`}></div>
-            <span className="break-words">Compliance Status: {audit.compliance.status.replace('_', ' ').toUpperCase()}</span>
+            Compliance Status: {audit.compliance.status.replace('_', ' ').toUpperCase()}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-base sm:text-lg">Score: <span className="font-bold">{audit.compliance.score}/100</span></p>
-          <p className="text-xs sm:text-sm text-gray-600 mt-2">
+          <p className="text-lg">Score: <span className="font-bold">{audit.compliance.score}/100</span></p>
+          <p className="text-sm text-gray-600 mt-2">
             Document Type: {audit.documentType.replace('_', ' ').toUpperCase()}
           </p>
         </CardContent>
@@ -202,9 +203,9 @@ export default function AuditReport({ audit, text }: AuditReportProps) {
                     <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold uppercase ${getHighlightClasses(highlight.level)}`}>
                       {highlight.level}
                     </span>
-                    <p className="text-sm text-gray-700">{sanitizeAuditText(highlight.reason)}</p>
+                    <p className="text-sm text-gray-700">{highlight.reason}</p>
                   </div>
-                  <p className="text-sm text-gray-900 font-medium whitespace-pre-wrap">{sanitizeAuditText(highlight.excerpt)}</p>
+                  <p className="text-sm text-gray-900 font-medium whitespace-pre-wrap">{highlight.excerpt}</p>
                 </div>
               ))}
             </div>

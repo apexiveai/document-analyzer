@@ -208,19 +208,10 @@ export async function POST(req: Request) {
     }
 
     if (insertError || !row) {
-      // Log detailed error server-side for debugging
-      console.error("documents insert failed", { 
-        requestId, 
-        error: insertError?.message,
-        errorDetails: insertError,
-        userId: user.id,
-        fileName: file.name
-      })
-      
-      // Return generic error to client to avoid leaking database schema
+      console.error("documents insert failed", { requestId, error: insertError?.message })
       return createSafeJsonResponse(
         {
-          error: "Failed to save document",
+          error: insertError?.message || "Failed to save document",
           text: extractedText,
           ai: ai.raw || "AI analysis failed",
         },

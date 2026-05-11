@@ -1,4 +1,4 @@
-import AdminGate from "./AdminGate"
+import PortalClient from "./AdminClient"
 
 export const metadata = {
   title: "Management Console | Apexive AI",
@@ -6,5 +6,5 @@ export const metadata = {
 }
 
 export default function AdminPage() {
-  return <AdminGate />
+  return <PortalClient />
 }

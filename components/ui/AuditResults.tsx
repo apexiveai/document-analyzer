@@ -48,16 +48,16 @@ export default function AuditResults({ audit }: AuditResultsProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg border shadow-sm p-4 sm:p-6 space-y-4 sm:space-y-6">
+    <div className="bg-white rounded-lg border shadow-sm p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-3">
         {audit.documentType === 'commercial_invoice' ? (
-          <Truck className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500 flex-shrink-0" />
+          <Truck className="w-8 h-8 text-blue-500" />
         ) : (
-          <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500 flex-shrink-0" />
+          <Shield className="w-8 h-8 text-purple-500" />
         )}
         <div>
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+          <h2 className="text-xl font-semibold text-gray-900">
             {audit.documentType === 'commercial_invoice' ? 'Commercial Invoice Audit' : 'Service Agreement Audit'}
           </h2>
           <p className="text-sm text-gray-600">
@@ -119,14 +119,14 @@ export default function AuditResults({ audit }: AuditResultsProps) {
 
       {/* Logistics Module Results */}
       {audit.logistics && (
-        <div className="border-t pt-4 sm:pt-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Truck className="w-5 h-5 text-blue-500" />
             Logistics Module - HS Code Analysis
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-            <div className="p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <h4 className="font-semibold text-blue-900 mb-2">HS Codes Found</h4>
               {audit.logistics.hsCodes.found.length > 0 ? (
                 <ul className="space-y-1">
@@ -155,15 +155,15 @@ export default function AuditResults({ audit }: AuditResultsProps) {
 
       {/* Legal Module Results */}
       {audit.legal && (
-        <div className="border-t pt-4 sm:pt-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Shield className="w-5 h-5 text-purple-500" />
             Legal Module - High-Risk Clauses Analysis
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             {/* Indemnity */}
-            <div className="p-3 sm:p-4 border rounded-lg">
+            <div className="p-4 border rounded-lg">
               <h4 className="font-semibold text-gray-900 mb-2">Indemnity Clauses</h4>
               <div className="flex items-center gap-2 mb-2">
                 <div className={`w-3 h-3 rounded-full ${audit.legal.highRiskClauses.indemnity.found ? 'bg-red-500' : 'bg-green-500'}`}></div>
@@ -177,7 +177,7 @@ export default function AuditResults({ audit }: AuditResultsProps) {
             </div>
 
             {/* Liability */}
-            <div className="p-3 sm:p-4 border rounded-lg">
+            <div className="p-4 border rounded-lg">
               <h4 className="font-semibold text-gray-900 mb-2">Liability Clauses</h4>
               <div className="flex items-center gap-2 mb-2">
                 <div className={`w-3 h-3 rounded-full ${audit.legal.highRiskClauses.liability.found ? 'bg-red-500' : 'bg-green-500'}`}></div>
@@ -191,7 +191,7 @@ export default function AuditResults({ audit }: AuditResultsProps) {
             </div>
 
             {/* Termination */}
-            <div className="p-3 sm:p-4 border rounded-lg">
+            <div className="p-4 border rounded-lg">
               <h4 className="font-semibold text-gray-900 mb-2">Termination Clauses</h4>
               <div className="flex items-center gap-2 mb-2">
                 <div className={`w-3 h-3 rounded-full ${audit.legal.highRiskClauses.termination.found ? 'bg-red-500' : 'bg-green-500'}`}></div>
@@ -206,9 +206,9 @@ export default function AuditResults({ audit }: AuditResultsProps) {
           </div>
 
           {/* Standards Compliance */}
-          <div className="p-3 sm:p-4 bg-gray-50 border rounded-lg">
+          <div className="p-4 bg-gray-50 border rounded-lg">
             <h4 className="font-semibold text-gray-900 mb-3">Standards Compliance</h4>
-            <div className="flex flex-wrap gap-3 sm:gap-6">
+            <div className="flex gap-6">
               <div className="flex items-center gap-2">
                 <div className={`w-3 h-3 rounded-full ${audit.legal.standards.northAmerican ? 'bg-green-500' : 'bg-red-500'}`}></div>
                 <span className="text-sm">North American Standards</span>
