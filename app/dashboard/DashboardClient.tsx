@@ -250,15 +250,12 @@ export default function DashboardClient({ children }: { children?: ReactNode }) 
             <div className="flex items-center justify-center sm:justify-end gap-3 sm:gap-6 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0">
               {isCoreView ? (
                 <div className="flex items-center gap-2 sm:gap-3">
-                  <span className="text-[10px] sm:text-sm font-bold text-gray-500 uppercase tracking-wider">
-                    Console
-                  </span>
                   <Link
                     href="/dashboard"
                     className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 text-[10px] sm:text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-full transition-colors whitespace-nowrap"
                   >
                     <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span>Exit View</span>
+                    <span>Exit</span>
                   </Link>
                 </div>
               ) : isManager ? (
