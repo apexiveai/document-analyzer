@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { getSupabaseClient, hasSupabasePublicEnv } from "@/lib/supabaseClient"
+import { useEffect } from "react";
+import { getSupabaseClient, hasSupabasePublicEnv } from "@/lib/supabaseClient";
 
 function looksLikeStaleAuthError(message: string) {
-  const m = message.toLowerCase()
+  const m = message.toLowerCase();
   return (
     m.includes("refresh") ||
     m.includes("invalid jwt") ||
     m.includes("jwt expired") ||
     (m.includes("session") && m.includes("invalid"))
-  )
+  );
 }
 
 /**
@@ -20,30 +20,33 @@ function looksLikeStaleAuthError(message: string) {
 export function SupabaseAuthRecovery() {
   useEffect(() => {
     if (!hasSupabasePublicEnv()) {
-      return
+      return;
     }
 
-    let cancelled = false
+    let cancelled = false;
 
     const clearIfStale = async () => {
       try {
-        const supabaseClient = getSupabaseClient()
-        const { error: sessionError } = await supabaseClient.auth.getSession()
-        if (cancelled) return
-        if (sessionError?.message && looksLikeStaleAuthError(sessionError.message)) {
+        const supabaseClient = getSupabaseClient();
+        const { error: sessionError } = await supabaseClient.auth.getSession();
+        if (cancelled) return;
+        if (
+          sessionError?.message &&
+          looksLikeStaleAuthError(sessionError.message)
+        ) {
           try {
-            await supabaseClient.auth.signOut({ scope: "local" })
+            await supabaseClient.auth.signOut({ scope: "local" });
           } catch {
             /* ignore */
           }
-          return
+          return;
         }
 
-        const { error: userError } = await supabaseClient.auth.getUser()
-        if (cancelled) return
+        const { error: userError } = await supabaseClient.auth.getUser();
+        if (cancelled) return;
         if (userError?.message && looksLikeStaleAuthError(userError.message)) {
           try {
-            await supabaseClient.auth.signOut({ scope: "local" })
+            await supabaseClient.auth.signOut({ scope: "local" });
           } catch {
             /* ignore */
           }
@@ -51,14 +54,14 @@ export function SupabaseAuthRecovery() {
       } catch {
         // Ignore runtime client init errors to avoid unhandled promise rejections.
       }
-    }
+    };
 
-    void clearIfStale()
+    void clearIfStale();
 
     return () => {
-      cancelled = true
-    }
-  }, [])
+      cancelled = true;
+    };
+  }, []);
 
-  return null
+  return null;
 }

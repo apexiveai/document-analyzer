@@ -1,12 +1,10 @@
-import { createBrowserClient } from "@supabase/ssr"
-
-let browserClient: ReturnType<typeof createBrowserClient> | null = null
+import { createBrowserClient } from "@supabase/ssr";
 
 export function hasSupabasePublicEnv() {
   return Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  )
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  );
 }
 
 /**
@@ -14,19 +12,15 @@ export function hasSupabasePublicEnv() {
  * does not fail prerender when env vars are unavailable.
  */
 export function getSupabaseClient() {
-  if (browserClient) {
-    return browserClient
-  }
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseAnonKey)
     throw new Error(
-      "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY"
-    )
-  }
+      "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY — " +
+        "add these to your Vercel Environment Variables.",
+    );
 
-  browserClient = createBrowserClient(supabaseUrl, supabaseAnonKey)
-  return browserClient
+  const browserClient = createBrowserClient(supabaseUrl, supabaseAnonKey);
+  return browserClient;
 }
