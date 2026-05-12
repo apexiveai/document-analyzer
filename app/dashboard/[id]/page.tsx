@@ -67,7 +67,7 @@ export default async function DocumentDetails({
             </div>
 
             {/* Collaboration Actions */}
-            <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="flex items-center gap-3 shrink-0">
               <ShareResults
                 documentId={id}
                 documentTitle={data.filename || data.file_name || "Document"}

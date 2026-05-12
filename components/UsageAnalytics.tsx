@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -13,12 +13,7 @@ import {
   AreaChart,
   Area,
 } from "recharts";
-import {
-  Users,
-  Activity,
-  Brain,
-  ShieldCheck,
-} from "lucide-react";
+import { Users, Activity, Brain, ShieldCheck } from "lucide-react";
 
 interface UsageData {
   email: string;
@@ -42,12 +37,6 @@ const trendData = [
 ];
 
 export default function UsageAnalytics({ data }: AdminUsageChartProps) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const sortedData = useMemo(() => {
     return [...data].sort((a, b) => b.total_tokens - a.total_tokens);
   }, [data]);
@@ -55,10 +44,6 @@ export default function UsageAnalytics({ data }: AdminUsageChartProps) {
   const chartHeight = Math.max(sortedData.length * 55, 320);
 
   const topUser = sortedData[0];
-
-  if (!mounted) {
-    return <div className="h-[500px] animate-pulse rounded-3xl bg-slate-100" />;
-  }
 
   // Empty State
   if (!sortedData.length) {
@@ -80,7 +65,7 @@ export default function UsageAnalytics({ data }: AdminUsageChartProps) {
   return (
     <div className="space-y-6">
       {/* HERO */}
-      <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-indigo-600 via-violet-600 to-cyan-500 p-8 text-white shadow-[0_10px_50px_rgba(0,0,0,0.15)]">
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-linear-to-br from-indigo-600 via-violet-600 to-cyan-500 p-8 text-white shadow-[0_10px_50px_rgba(0,0,0,0.15)]">
         <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
 
         <div className="relative z-10">
@@ -316,12 +301,12 @@ function StatCard({
   return (
     <div className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
       <div
-        className={`absolute right-0 top-0 h-24 w-24 rounded-full bg-gradient-to-br ${color} opacity-10 blur-2xl`}
+        className={`absolute right-0 top-0 h-24 w-24 rounded-full bg-linear-to-br ${color} opacity-10 blur-2xl`}
       />
 
       <div className="relative">
         <div
-          className={`inline-flex rounded-2xl bg-gradient-to-br ${color} p-3 text-white shadow-lg`}
+          className={`inline-flex rounded-2xl bg-linear-to-br ${color} p-3 text-white shadow-lg`}
         >
           {icon}
         </div>

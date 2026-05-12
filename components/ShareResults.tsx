@@ -1,29 +1,32 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Share2, Copy, Check, X, Link as LinkIcon } from "lucide-react"
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Share2, Copy, Check, X, Link as LinkIcon } from "lucide-react";
 
 interface ShareResultsProps {
-  documentId: string
-  documentTitle: string
+  documentId: string;
+  documentTitle: string;
 }
 
-export default function ShareResults({ documentId, documentTitle }: ShareResultsProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [copied, setCopied] = useState(false)
+export default function ShareResults({
+  documentId,
+  documentTitle,
+}: ShareResultsProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const shareUrl = `${window.location.origin}/dashboard/${documentId}`
+  const shareUrl = `${window.location.origin}/dashboard/${documentId}`;
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(shareUrl)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy link:', err)
+      console.error("Failed to copy link:", err);
     }
-  }
+  };
 
   return (
     <>
@@ -49,7 +52,7 @@ export default function ShareResults({ documentId, documentTitle }: ShareResults
               className="fixed inset-0 bg-black/50 backdrop-blur-sm"
               onClick={() => setIsOpen(false)}
             />
-            
+
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -58,13 +61,15 @@ export default function ShareResults({ documentId, documentTitle }: ShareResults
               className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
             >
               {/* Header */}
-              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-blue-50">
+              <div className="p-6 border-b border-gray-100 bg-linear-to-r from-indigo-50 to-blue-50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-linear-to-br from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center">
                       <Share2 className="w-5 h-5 text-white" />
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900">Share Results</h3>
+                    <h3 className="text-lg font-bold text-gray-900">
+                      Share Results
+                    </h3>
                   </div>
                   <button
                     onClick={() => setIsOpen(false)}
@@ -78,12 +83,18 @@ export default function ShareResults({ documentId, documentTitle }: ShareResults
               {/* Content */}
               <div className="p-6 space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-2">Document</p>
-                  <p className="text-gray-900 font-semibold truncate">{documentTitle}</p>
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Document
+                  </p>
+                  <p className="text-gray-900 font-semibold truncate">
+                    {documentTitle}
+                  </p>
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-3">Share Link</p>
+                  <p className="text-sm font-medium text-gray-700 mb-3">
+                    Share Link
+                  </p>
                   <div className="flex items-center gap-2">
                     <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 font-mono truncate">
                       {shareUrl}
@@ -129,11 +140,14 @@ export default function ShareResults({ documentId, documentTitle }: ShareResults
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <div className="flex items-start gap-2">
-                    <LinkIcon className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <LinkIcon className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-blue-900">Public Link</p>
+                      <p className="text-sm font-medium text-blue-900">
+                        Public Link
+                      </p>
                       <p className="text-xs text-blue-700 mt-1">
-                        Anyone with this link can view the document analysis results.
+                        Anyone with this link can view the document analysis
+                        results.
                       </p>
                     </div>
                   </div>
@@ -144,5 +158,5 @@ export default function ShareResults({ documentId, documentTitle }: ShareResults
         )}
       </AnimatePresence>
     </>
-  )
+  );
 }

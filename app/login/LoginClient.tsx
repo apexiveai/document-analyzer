@@ -110,10 +110,10 @@ export default function LoginClient() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#f0f2f5] via-gray-100 to-white">
+    <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-[#f0f2f5] via-gray-100 to-white">
       <BackgroundAnimation />
       <div className="relative z-10 flex flex-col lg:grid lg:grid-cols-2 min-h-screen">
-        <div className="lg:flex bg-gradient-to-br from-[#1877f2] via-[#1a76d2] to-[#0d47a1] p-6 sm:p-8 lg:p-12 xl:p-20 flex-col justify-start text-white order-2 lg:order-1 pt-6 sm:pt-8 lg:pt-10 xl:pt-12">
+        <div className="lg:flex bg-linear-to-br from-[#1877f2] via-[#1a76d2] to-[#0d47a1] p-6 sm:p-8 lg:p-12 xl:p-20 flex-col justify-start text-white order-2 lg:order-1 pt-6 sm:pt-8 lg:pt-10 xl:pt-12">
           <div className="text-center lg:text-left mb-10 lg:mb-12">
             <div className="flex items-center justify-center lg:justify-start gap-3 mb-4">
               <motion.div
@@ -172,7 +172,7 @@ export default function LoginClient() {
               }}
               className="flex items-center gap-4"
             >
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0 backdrop-blur-sm border border-white/5">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-xl flex items-center justify-center shrink-0 backdrop-blur-sm border border-white/5">
                 <motion.div
                   animate={{
                     x: [0, -2, 2, -1, 0],
@@ -243,7 +243,7 @@ export default function LoginClient() {
               }}
               className="flex items-center gap-4"
             >
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0 backdrop-blur-sm border border-white/5">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-xl flex items-center justify-center shrink-0 backdrop-blur-sm border border-white/5">
                 <motion.div
                   animate={{
                     x: [0, -2, 2, -1, 0],
@@ -440,7 +440,7 @@ export default function LoginClient() {
                 whileTap={{ scale: 0.95 }}
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-[#1877f2] to-[#1a76d2] text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full bg-linear-to-r from-[#1877f2] to-[#1a76d2] text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
