@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import { motion } from "framer-motion";
+import { APP_CONFIG } from "@/constants/config";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ACCEPTED_TYPES = {
@@ -51,9 +52,7 @@ export default function FileUploader({
   const { showToast } = useToast();
 
   const validateFile = (file: File): string | null => {
-    if (file.size > MAX_BYTES) {
-      return "File too large (max 10MB).";
-    }
+    if (file.size > MAX_BYTES) return "File too large (max 10MB).";
 
     const isAcceptedType = Object.keys(ACCEPTED_TYPES).some(
       (type) =>
@@ -63,9 +62,8 @@ export default function FileUploader({
         ),
     );
 
-    if (!isAcceptedType) {
+    if (!isAcceptedType)
       return "File type not supported. Please upload PDF, DOCX, TXT, CSV, DOC, or image files.";
-    }
 
     return null;
   };
@@ -148,7 +146,7 @@ export default function FileUploader({
 
       xhr.onload = () => {
         if (xhr.status === 401) {
-          router.push("/login");
+          router.push(APP_CONFIG.ROUTES.LOGIN);
           setLoading(false);
           reject(new Error("Unauthorized"));
           return;
@@ -318,7 +316,8 @@ export default function FileUploader({
                 : "Choose or Drag & Drop File"}
             </span>
             <span className="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4 block">
-              {getAcceptedTypesString()} files up to 10MB
+              {getAcceptedTypesString()} <br />
+              Up to 10MB
             </span>
             <input
               ref={inputRef}
