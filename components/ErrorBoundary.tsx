@@ -1,48 +1,55 @@
-"use client"
+"use client";
 
-import React, { Component, ErrorInfo, ReactNode } from 'react'
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
-import { motion } from 'framer-motion'
+import React, { Component, ErrorInfo, ReactNode } from "react";
+import { AlertTriangle, RefreshCw, Home } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface Props {
-  children: ReactNode
-  fallback?: ReactNode
-  onError?: (error: Error, errorInfo: ErrorInfo) => void
+  children: ReactNode;
+  fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface State {
-  hasError: boolean
-  error: Error | null
-  errorInfo: ErrorInfo | null
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
-    super(props)
+    super(props);
     this.state = {
       hasError: false,
       error: null,
-      errorInfo: null
-    }
+      errorInfo: null,
+    };
   }
 
   static getDerivedStateFromError(error: Error): Partial<State> {
-    return { hasError: true, error }
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    this.setState({ errorInfo })
-    
-    import('@/lib/globalErrorHandler').then(({ monitor }) => {
-      monitor.capture(error, 'ErrorBoundary', {
-        componentStack: errorInfo.componentStack ?? undefined,
-      }, 'error')
-    }).catch(() => {
-      console.error('ErrorBoundary caught an error:', error, errorInfo)
-    })
-    
+    this.setState({ errorInfo });
+
+    import("@/lib/globalErrorHandler")
+      .then(({ monitor }) => {
+        monitor.capture(
+          error,
+          "ErrorBoundary",
+          {
+            componentStack: errorInfo.componentStack ?? undefined,
+          },
+          "error",
+        );
+      })
+      .catch(() => {
+        console.error("ErrorBoundary caught an error:", error, errorInfo);
+      });
+
     if (this.props.onError) {
-      this.props.onError(error, errorInfo)
+      this.props.onError(error, errorInfo);
     }
   }
 
@@ -50,22 +57,22 @@ export class ErrorBoundary extends Component<Props, State> {
     this.setState({
       hasError: false,
       error: null,
-      errorInfo: null
-    })
-  }
+      errorInfo: null,
+    });
+  };
 
   handleGoHome = (): void => {
-    window.location.href = '/'
-  }
+    window.location.href = "/";
+  };
 
   render(): ReactNode {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        return this.props.fallback
+        return this.props.fallback;
       }
 
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100 p-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -81,11 +88,12 @@ export class ErrorBoundary extends Component<Props, State> {
                   Something went wrong
                 </h2>
                 <p className="text-gray-600 mb-6">
-                  We apologize for the inconvenience. Please try again or contact support if the problem persists.
+                  We apologize for the inconvenience. Please try again or
+                  contact support if the problem persists.
                 </p>
               </div>
 
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {process.env.NODE_ENV === "development" && this.state.error && (
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 text-left">
                   <h3 className="text-sm font-semibold text-gray-700 mb-2">
                     Error Details (Development Only)
@@ -110,7 +118,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={this.handleRetry}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                  className="flex-1 bg-linear-to-r from-blue-600 to-blue-700 text-white py-3 px-4 rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
                 >
                   <RefreshCw className="w-4 h-4" />
                   Try Again
@@ -127,7 +135,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <p className="text-sm text-gray-500">
-                  Need help?{' '}
+                  Need help?{" "}
                   <a
                     href="mailto:support@apexive.ai"
                     className="text-blue-600 hover:text-blue-800 font-medium"
@@ -139,45 +147,45 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
           </motion.div>
         </div>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }
 
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
-  errorBoundaryProps?: Partial<Props>
+  errorBoundaryProps?: Partial<Props>,
 ): React.ComponentType<P> {
   return function WithErrorBoundary(props: P) {
     return (
       <ErrorBoundary {...errorBoundaryProps}>
         <Component {...props} />
       </ErrorBoundary>
-    )
-  }
+    );
+  };
 }
 
 export function useErrorHandler() {
-  const [error, setError] = React.useState<Error | null>(null)
+  const [error, setError] = React.useState<Error | null>(null);
 
   const handleError = React.useCallback((err: Error) => {
-    console.error('Error caught by useErrorHandler:', err)
-    setError(err)
-    
+    console.error("Error caught by useErrorHandler:", err);
+    setError(err);
+
     // You could send to error reporting service here
     // sendErrorToService(err)
-  }, [])
+  }, []);
 
   const clearError = React.useCallback(() => {
-    setError(null)
-  }, [])
+    setError(null);
+  }, []);
 
   return {
     error,
     handleError,
     clearError,
-    hasError: error !== null
-  }
+    hasError: error !== null,
+  };
 }

@@ -1,7 +1,7 @@
-"use server"
+"use server";
 
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { createSupabaseServerClient } from "../supabaseServer";
+import { createClient as createSupabaseServerClient } from "@/lib/supabaseServer";
 import { PLANS, PlanKey } from "../billing/plans";
 
 const CORE_IDENTITY = "sdd@gmail.com";
@@ -18,7 +18,7 @@ function getSupabaseAdminClient() {
           autoRefreshToken: false,
           persistSession: false,
         },
-      }
+      },
     );
   }
   return supabaseClient;
@@ -26,10 +26,8 @@ function getSupabaseAdminClient() {
 
 export async function getUserTotalUsage(userId?: string) {
   const supabase = getSupabaseAdminClient();
-  
-  const query = supabase
-    .from("documents")
-    .select("total_tokens");
+
+  const query = supabase.from("documents").select("total_tokens");
 
   if (userId) {
     query.eq("user_id", userId);
@@ -88,8 +86,14 @@ export async function getUserUsageStats(userId: string) {
     return { totalTokens: 0, totalCost: 0, logs: [] };
   }
 
-  const totalTokens = data.reduce((acc, curr) => acc + (curr.token_count || 0), 0);
-  const totalCost = data.reduce((acc, curr) => acc + (Number(curr.cost) || 0), 0);
+  const totalTokens = data.reduce(
+    (acc, curr) => acc + (curr.token_count || 0),
+    0,
+  );
+  const totalCost = data.reduce(
+    (acc, curr) => acc + (Number(curr.cost) || 0),
+    0,
+  );
 
   return { totalTokens, totalCost, logs: data };
 }
@@ -97,7 +101,9 @@ export async function getUserUsageStats(userId: string) {
 export async function getAllUsersUsage() {
   // Server-side security check
   const serverSupabase = await createSupabaseServerClient();
-  const { data: { user } } = await serverSupabase.auth.getUser();
+  const {
+    data: { user },
+  } = await serverSupabase.auth.getUser();
 
   if (!user || user.email !== CORE_IDENTITY) {
     throw new Error("Unauthorized: System access only");
@@ -106,7 +112,10 @@ export async function getAllUsersUsage() {
   const supabase = getSupabaseAdminClient();
 
   // 1. Fetch all users from auth
-  const { data: { users }, error: authError } = await supabase.auth.admin.listUsers();
+  const {
+    data: { users },
+    error: authError,
+  } = await supabase.auth.admin.listUsers();
   if (authError) {
     console.error("Error fetching users:", authError);
     return [];
@@ -124,12 +133,15 @@ export async function getAllUsersUsage() {
 
   // 3. Aggregate data
   const usageMap: Record<string, number> = {};
-  documents?.forEach(doc => {
-    usageMap[doc.user_id] = (usageMap[doc.user_id] || 0) + (doc.total_tokens || 0);
+  documents?.forEach((doc) => {
+    usageMap[doc.user_id] =
+      (usageMap[doc.user_id] || 0) + (doc.total_tokens || 0);
   });
 
-  return users.map(user => ({
-    email: user.email || "Unknown",
-    total_tokens: usageMap[user.id] || 0
-  })).filter(u => u.total_tokens > 0); // Only show users with usage
+  return users
+    .map((user) => ({
+      email: user.email || "Unknown",
+      total_tokens: usageMap[user.id] || 0,
+    }))
+    .filter((u) => u.total_tokens > 0); // Only show users with usage
 }

@@ -23,56 +23,54 @@
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 /** Max attempts per IP per window */
-const IP_LIMIT = 10
+const IP_LIMIT = 10;
 /** Max attempts per email per window */
-const EMAIL_LIMIT = 5
+const EMAIL_LIMIT = 5;
 /** Normal sliding window: 15 minutes */
-const WINDOW_MS = 15 * 60 * 1000
+const WINDOW_MS = 15 * 60 * 1000;
 /** Extended lockout window after repeated failures: 1 hour */
-const LOCKOUT_WINDOW_MS = 60 * 60 * 1000
+const LOCKOUT_WINDOW_MS = 60 * 60 * 1000;
 /** Consecutive failures before extended lockout kicks in */
-const LOCKOUT_THRESHOLD = 3
+const LOCKOUT_THRESHOLD = 3;
 
 // ─── Store types ──────────────────────────────────────────────────────────────
 
 interface RateLimitEntry {
-  count: number
-  resetAt: number
+  count: number;
+  resetAt: number;
 }
 
 interface FailureEntry {
-  consecutiveFailures: number
-  lockedUntil: number
+  consecutiveFailures: number;
+  lockedUntil: number;
 }
 
 declare global {
-  // eslint-disable-next-line no-var
-  var __loginRateLimitStore: Map<string, RateLimitEntry> | undefined
-  // eslint-disable-next-line no-var
-  var __loginFailureStore: Map<string, FailureEntry> | undefined
+  var __loginRateLimitStore: Map<string, RateLimitEntry> | undefined;
+  var __loginFailureStore: Map<string, FailureEntry> | undefined;
 }
 
 const store: Map<string, RateLimitEntry> =
-  globalThis.__loginRateLimitStore ?? new Map()
+  globalThis.__loginRateLimitStore ?? new Map();
 if (!globalThis.__loginRateLimitStore) {
-  globalThis.__loginRateLimitStore = store
+  globalThis.__loginRateLimitStore = store;
 }
 
 const failureStore: Map<string, FailureEntry> =
-  globalThis.__loginFailureStore ?? new Map()
+  globalThis.__loginFailureStore ?? new Map();
 if (!globalThis.__loginFailureStore) {
-  globalThis.__loginFailureStore = failureStore
+  globalThis.__loginFailureStore = failureStore;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function check(key: string, limit: number, windowMs: number) {
-  const now = Date.now()
-  const entry = store.get(key)
+  const now = Date.now();
+  const entry = store.get(key);
 
   if (!entry || entry.resetAt <= now) {
-    store.set(key, { count: 1, resetAt: now + windowMs })
-    return { allowed: true, remaining: limit - 1, retryAfterSeconds: 0 }
+    store.set(key, { count: 1, resetAt: now + windowMs });
+    return { allowed: true, remaining: limit - 1, retryAfterSeconds: 0 };
   }
 
   if (entry.count >= limit) {
@@ -80,26 +78,26 @@ function check(key: string, limit: number, windowMs: number) {
       allowed: false,
       remaining: 0,
       retryAfterSeconds: Math.ceil((entry.resetAt - now) / 1000),
-    }
+    };
   }
 
-  entry.count += 1
+  entry.count += 1;
   return {
     allowed: true,
     remaining: Math.max(0, limit - entry.count),
     retryAfterSeconds: 0,
-  }
+  };
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 export interface LoginRateLimitResult {
-  allowed: boolean
+  allowed: boolean;
   /** Which limiter blocked the request: 'ip' | 'email' | 'lockout' | null */
-  blockedBy: 'ip' | 'email' | 'lockout' | null
-  retryAfterSeconds: number
+  blockedBy: "ip" | "email" | "lockout" | null;
+  retryAfterSeconds: number;
   /** Remaining attempts before the tighter of the two limits is hit */
-  remainingAttempts: number
+  remainingAttempts: number;
 }
 
 /**
@@ -108,42 +106,42 @@ export interface LoginRateLimitResult {
  */
 export function checkLoginRateLimit(
   ip: string,
-  email: string
+  email: string,
 ): LoginRateLimitResult {
-  const normalizedEmail = email.toLowerCase().trim()
-  const now = Date.now()
+  const normalizedEmail = email.toLowerCase().trim();
+  const now = Date.now();
 
   // ── 1. Progressive lockout check ──────────────────────────────────────────
-  const failure = failureStore.get(normalizedEmail)
+  const failure = failureStore.get(normalizedEmail);
   if (failure && failure.lockedUntil > now) {
     return {
       allowed: false,
-      blockedBy: 'lockout',
+      blockedBy: "lockout",
       retryAfterSeconds: Math.ceil((failure.lockedUntil - now) / 1000),
       remainingAttempts: 0,
-    }
+    };
   }
 
   // ── 2. Per-IP check ───────────────────────────────────────────────────────
-  const ipResult = check(`ip:${ip}`, IP_LIMIT, WINDOW_MS)
+  const ipResult = check(`ip:${ip}`, IP_LIMIT, WINDOW_MS);
   if (!ipResult.allowed) {
     return {
       allowed: false,
-      blockedBy: 'ip',
+      blockedBy: "ip",
       retryAfterSeconds: ipResult.retryAfterSeconds,
       remainingAttempts: 0,
-    }
+    };
   }
 
   // ── 3. Per-email check ────────────────────────────────────────────────────
-  const emailResult = check(`email:${normalizedEmail}`, EMAIL_LIMIT, WINDOW_MS)
+  const emailResult = check(`email:${normalizedEmail}`, EMAIL_LIMIT, WINDOW_MS);
   if (!emailResult.allowed) {
     return {
       allowed: false,
-      blockedBy: 'email',
+      blockedBy: "email",
       retryAfterSeconds: emailResult.retryAfterSeconds,
       remainingAttempts: 0,
-    }
+    };
   }
 
   return {
@@ -151,7 +149,7 @@ export function checkLoginRateLimit(
     blockedBy: null,
     retryAfterSeconds: 0,
     remainingAttempts: Math.min(ipResult.remaining, emailResult.remaining),
-  }
+  };
 }
 
 /**
@@ -159,20 +157,20 @@ export function checkLoginRateLimit(
  * and apply progressive lockout when the threshold is reached.
  */
 export function recordLoginFailure(email: string): void {
-  const key = email.toLowerCase().trim()
-  const now = Date.now()
-  const existing = failureStore.get(key)
-  const failures = (existing?.consecutiveFailures ?? 0) + 1
+  const key = email.toLowerCase().trim();
+  const now = Date.now();
+  const existing = failureStore.get(key);
+  const failures = (existing?.consecutiveFailures ?? 0) + 1;
 
   const lockedUntil =
-    failures >= LOCKOUT_THRESHOLD ? now + LOCKOUT_WINDOW_MS : 0
+    failures >= LOCKOUT_THRESHOLD ? now + LOCKOUT_WINDOW_MS : 0;
 
-  failureStore.set(key, { consecutiveFailures: failures, lockedUntil })
+  failureStore.set(key, { consecutiveFailures: failures, lockedUntil });
 }
 
 /**
  * Call this after a **successful** login to reset the failure counter.
  */
 export function recordLoginSuccess(email: string): void {
-  failureStore.delete(email.toLowerCase().trim())
+  failureStore.delete(email.toLowerCase().trim());
 }
