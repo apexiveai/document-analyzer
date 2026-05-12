@@ -368,7 +368,7 @@ export default function DashboardClient({
                       <p className="text-xl sm:text-2xl md:text-3xl font-bold text-indigo-700">
                         {audited.length}
                       </p>
-                      <p className="text-[10px] sm:text-xs sm:text-sm text-indigo-600 mt-1">
+                      <p className="text-[10px] sm:text-sm text-indigo-600 mt-1">
                         Audited
                       </p>
                     </div>
@@ -379,7 +379,7 @@ export default function DashboardClient({
                       <p className="text-xl sm:text-2xl md:text-3xl font-bold text-green-700">
                         {compliant}
                       </p>
-                      <p className="text-[10px] sm:text-xs sm:text-sm text-green-600 mt-1">
+                      <p className="text-[10px] sm:text-sm text-green-600 mt-1">
                         Compliant
                       </p>
                     </div>
@@ -390,7 +390,7 @@ export default function DashboardClient({
                       <p className="text-xl sm:text-2xl md:text-3xl font-bold text-red-700">
                         {nonCompliant}
                       </p>
-                      <p className="text-[10px] sm:text-xs sm:text-sm text-red-600 mt-1">
+                      <p className="text-[10px] sm:text-sm text-red-600 mt-1">
                         Non-Compliant
                       </p>
                     </div>
@@ -401,7 +401,7 @@ export default function DashboardClient({
                       <p className="text-xl sm:text-2xl md:text-3xl font-bold text-yellow-700">
                         {needsReview}
                       </p>
-                      <p className="text-[10px] sm:text-xs sm:text-sm text-yellow-600 mt-1">
+                      <p className="text-[10px] sm:text-sm text-yellow-600 mt-1">
                         Needs Review
                       </p>
                     </div>

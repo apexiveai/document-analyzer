@@ -1,12 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { z } from "zod";
 import { getSupabaseClient, hasSupabasePublicEnv } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { Lock, Mail, LogIn, UserPlus, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import BackgroundAnimation from "@/components/BackgroundAnimation";
 import { APP_CONFIG } from "@/constants/config";
+import {
+  loginSchema,
+  signupSchema,
+  formatValidationErrors,
+} from "@/lib/schemas/auth";
 
 export default function LoginClient() {
   const missingSupabaseEnv = !hasSupabasePublicEnv();
@@ -51,7 +57,7 @@ export default function LoginClient() {
     void checkExistingSession();
   }, [missingSupabaseEnv, router]);
 
-  const handleAuth = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAuth = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
@@ -60,6 +66,30 @@ export default function LoginClient() {
       setMessage(
         "Missing Supabase public environment variables in this deployment.",
       );
+      setMessageType("error");
+      setLoading(false);
+      return;
+    }
+
+    // ── Validate form data with Zod ──────────────────────────────────────────
+    try {
+      const schema = isSignUp ? signupSchema : loginSchema;
+      const formData = isSignUp
+        ? { email, password, name }
+        : { email, password };
+
+      schema.parse(formData);
+    } catch (validationError: unknown) {
+      // Handle Zod validation errors
+      if (validationError instanceof z.ZodError) {
+        const errorMessage = formatValidationErrors(validationError);
+        setMessage(errorMessage);
+        setMessageType("error");
+        setLoading(false);
+        return;
+      }
+      // Fallback for unexpected errors
+      setMessage("Validation error occurred");
       setMessageType("error");
       setLoading(false);
       return;
@@ -95,11 +125,11 @@ export default function LoginClient() {
       } else {
         setMessage("Login successful! Redirecting...");
         setMessageType("success");
-        const timer = setTimeout(() => {
-          router.replace("/dashboard");
-          router.refresh();
-        }, 500);
-        return () => clearTimeout(timer);
+        // const timer = setTimeout(() => {
+        router.replace(APP_CONFIG.ROUTES.DASHBOARD);
+        router.refresh();
+        // }, 500);
+        // return () => clearTimeout(timer);
       }
     } catch (err: unknown) {
       setMessage(err instanceof Error ? err.message : "An error occurred");
@@ -454,7 +484,7 @@ export default function LoginClient() {
                     ) : (
                       <LogIn className="w-5 h-5" />
                     )}
-                    {isSignUp ? "Create Account" : "Sign In"}
+                    {isSignUp ? "Create Account" : "Login"}
                   </>
                 )}
               </motion.button>
