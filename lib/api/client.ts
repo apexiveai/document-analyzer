@@ -145,7 +145,7 @@ class ApiClient {
 
     try {
       // Apply request interceptors
-      let config = await this.applyRequestInterceptors({
+      const config = await this.applyRequestInterceptors({
         ...fetchOptions,
         params,
         timeout,
@@ -199,9 +199,9 @@ class ApiClient {
     try {
       const data = (await response.json()) as ApiError & {
         details?: Record<string, unknown>;
+        message?: string;
       };
-      const errorMessage =
-        (data as any).message ?? data.error ?? response.statusText;
+      const errorMessage = data.message ?? data.error ?? response.statusText;
       const error = new ApiErrorResponse(
         response.status,
         data.code || `HTTP_${response.status}`,
@@ -287,7 +287,7 @@ class ApiClient {
     const { onProgress, timeout = 60000, ...fetchOptions } = options || {};
 
     try {
-      let config = await this.applyRequestInterceptors({
+      const config = await this.applyRequestInterceptors({
         ...fetchOptions,
         method: "POST",
         timeout,

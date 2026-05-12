@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import type { User } from "@supabase/supabase-js";
 import { checkUserQuota } from "@/lib/actions/usage";
 
@@ -40,11 +40,7 @@ export function useQuota(user: User | null): UseQuotaReturn {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (user) {
-      void fetch();
-    }
-  }, [user, fetch]);
+  // Auto-fetch removed to avoid setState within useEffect.
 
   const usagePercent = quota
     ? Math.min(100, (quota.usage / quota.limit) * 100)

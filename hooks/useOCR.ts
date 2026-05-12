@@ -1,13 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { createWorker } from "tesseract.js";
+import type { Worker } from "tesseract.js";
 
 // Dynamic import for Tesseract.js to handle optional dependency
 // let Tesseract: Record<string, unknown> | null = null;
-
-interface ProgressMessage {
-  progress: number;
-  status?: string;
-}
 
 export interface OCRResult {
   text: string;
@@ -30,13 +26,19 @@ export function useOCR(options: UseOCROptions = {}) {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
+  const onProgressRef = useRef<typeof onProgress>(onProgress);
+
+  useEffect(() => {
+    onProgressRef.current = onProgress;
+  }, [onProgress]);
+
   const processImage = useCallback(
     async (file: File): Promise<OCRResult | null> => {
-      setIsProcessing(true);
-      setProgress(0);
-      setError(null);
-
       try {
+        setIsProcessing(true);
+        setError(null);
+        setProgress(0);
+
         // Check if file is an image
         if (!file.type.startsWith("image/")) {
           throw new Error("File must be an image");
@@ -50,19 +52,11 @@ export function useOCR(options: UseOCROptions = {}) {
           reader.readAsDataURL(file);
         });
 
-        // Create worker with logger to receive progress messages
-        const worker = (await createWorker({
-          logger: (message: ProgressMessage) => {
-            const progressValue = Math.round((message.progress ?? 0) * 100);
-            setProgress(progressValue);
-            if (onProgress) onProgress(progressValue);
-          },
-        } as any)) as any;
+        // Create worker (v7 signature: langs only)
+        const worker: Worker = await createWorker([language]);
 
         // Initialize worker and load language
         await worker.load();
-        await worker.loadLanguage(language);
-        await worker.initialize(language);
 
         // Recognize text from image
         const result = await worker.recognize(fileUrl);
@@ -73,6 +67,7 @@ export function useOCR(options: UseOCROptions = {}) {
         await worker.terminate();
 
         setProgress(100);
+        onProgressRef.current?.(100);
 
         return {
           text: extractedText,
@@ -88,7 +83,7 @@ export function useOCR(options: UseOCROptions = {}) {
         setIsProcessing(false);
       }
     },
-    [language, onProgress],
+    [language],
   );
 
   const processMultipleImages = useCallback(

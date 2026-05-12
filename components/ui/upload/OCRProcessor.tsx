@@ -20,7 +20,7 @@ export function OCRProcessor({
   const [results, setResults] = useState<Map<string, OCRResult | null>>(
     new Map(),
   );
-  const [currentFile, setCurrentFile] = useState<string | null>(null);
+  //   const [currentFile, setCurrentFile] = useState<string | null>(null);
 
   useEffect(() => {
     if (!autoStart || files.length === 0) return;

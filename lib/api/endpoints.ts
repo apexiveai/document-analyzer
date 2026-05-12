@@ -1,6 +1,5 @@
 import { apiClient } from "./client";
 import {
-  ApiResponse,
   LoginRequest,
   LoginResponse,
   UploadResponse,

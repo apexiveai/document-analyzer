@@ -35,7 +35,7 @@ export function BatchFileUploader({
   const inputRef = useRef<HTMLInputElement>(null);
   const { showToast } = useToast();
   const { upload } = useFileUpload();
-  const { addItem, updateItem } = useUploadHistory();
+  const { addItem } = useUploadHistory();
 
   const uploadAdapter = useCallback(
     (file: File, documentType: string, onProgress: (p: number) => void) =>
@@ -48,7 +48,6 @@ export function BatchFileUploader({
 
   const [dragActive, setDragActive] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showOCRResults, setShowOCRResults] = useState(false);
 
   const validateFiles = (
     files: File[],

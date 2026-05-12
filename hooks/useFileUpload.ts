@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 import { APP_CONFIG } from "@/constants/config";
@@ -67,7 +67,7 @@ export function useFileUpload(
 ): UseFileUploadReturn {
   const router = useRouter();
   const { showToast } = useToast();
-  const inputRef = useRef<HTMLInputElement>(null);
+  //   const inputRef = useRef<HTMLInputElement>(null);
 
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [selectedFileObj, setSelectedFileObj] = useState<File | null>(null);
@@ -104,19 +104,6 @@ export function useFileUpload(
       setDragActive(false);
     }
   }, []);
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setDragActive(false);
-
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        handleFileSelect(e.dataTransfer.files[0]);
-      }
-    },
-    [setDragActive],
-  );
 
   const uploadFile = useCallback(
     (file: File): Promise<UploadedFile> => {
@@ -231,27 +218,34 @@ export function useFileUpload(
 
   // Legacy-friendly wrapper used by FileUploader component
   const upload = useCallback(
-    (file: File, _type?: string, _onProgress?: (p: number) => void) => {
+    (file: File) => {
       setSelectedFileObj(file);
       return uploadFile(file);
     },
     [uploadFile],
   );
 
-  const handleFileSelect = useCallback(
-    (file: File) => {
-      const validationError = validateFile(file);
+  const handleFileSelect = (file: File) => {
+    const validationError = validateFile(file);
 
-      if (validationError) {
-        showToast(validationError, "error");
-        return;
-      }
+    if (validationError) {
+      showToast(validationError, "error");
+      return;
+    }
 
-      setSelectedFileObj(file);
-      void uploadFile(file);
-    },
-    [validateFile, uploadFile, showToast],
-  );
+    setSelectedFileObj(file);
+    void uploadFile(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileSelect(e.dataTransfer.files[0]);
+    }
+  };
 
   const clearFiles = useCallback(() => {
     setFiles([]);

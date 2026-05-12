@@ -19,32 +19,33 @@ const MAX_HISTORY_ITEMS = 50;
  * Hook to manage upload history with localStorage persistence
  */
 export function useUploadHistory() {
-  const [history, setHistory] = useState<UploadHistoryItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Load history from localStorage on mount
-  useEffect(() => {
+  const [history, setHistory] = useState<UploadHistoryItem[]>(() => {
+    if (typeof window === "undefined") return [];
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as UploadHistoryItem[];
-        setHistory(parsed);
-      }
+      return stored ? (JSON.parse(stored) as UploadHistoryItem[]) : [];
     } catch (error) {
-      console.error("Failed to load upload history:", error);
-    } finally {
-      setIsLoading(false);
+      console.error("Failed to parse upload history:", error);
+      return [];
     }
-  }, []);
+  });
 
-  // Save history to localStorage
+  const [isLoading] = useState(false);
+
   const saveToStorage = useCallback((items: UploadHistoryItem[]) => {
     try {
+      if (typeof window === "undefined") return;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     } catch (error) {
       console.error("Failed to save upload history:", error);
     }
   }, []);
+
+  // No mount effect: history is initialized synchronously above
+
+  useEffect(() => {
+    saveToStorage(history);
+  }, [history, saveToStorage]);
 
   // Add item to history
   const addItem = useCallback(

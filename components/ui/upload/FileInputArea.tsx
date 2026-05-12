@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback, ReactNode } from "react";
+import { useRef } from "react";
 import { Upload } from "lucide-react";
 
 interface FileInputAreaProps {
