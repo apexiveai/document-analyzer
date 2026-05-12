@@ -72,7 +72,7 @@ export default async function DocumentDetails({
                 documentId={id}
                 documentTitle={data.filename || data.file_name || "Document"}
               />
-              <TeamWorkspace documentId={id} />
+              <TeamWorkspace />
             </div>
           </div>
 

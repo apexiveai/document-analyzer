@@ -251,11 +251,11 @@ export default function PaymentModal({ children }: PaymentModalProps) {
                   ) : activeMethod === "global" ? (
                     <GlobalView
                       key="global"
-                      onProceed={handleLemonSqueezy}
+                      // onProceed={handleLemonSqueezy}
                       onSelectCard={() => setActiveMethod("card")}
                       onSelectPayPal={() => setActiveMethod("paypal")}
-                      currentStep={globalPaymentStep}
-                      onStepChange={setGlobalPaymentStep}
+                      // currentStep={globalPaymentStep}
+                      // onStepChange={setGlobalPaymentStep}
                     />
                   ) : activeMethod === "card" ? (
                     <CardEntryView key="card" onProceed={handleLemonSqueezy} />
