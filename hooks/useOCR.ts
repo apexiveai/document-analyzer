@@ -1,0 +1,122 @@
+import { useState, useCallback } from "react";
+import { createWorker } from "tesseract.js";
+
+// Dynamic import for Tesseract.js to handle optional dependency
+// let Tesseract: Record<string, unknown> | null = null;
+
+interface ProgressMessage {
+  progress: number;
+  status?: string;
+}
+
+export interface OCRResult {
+  text: string;
+  confidence: number;
+  language: string;
+}
+
+interface UseOCROptions {
+  language?: string;
+  onProgress?: (progress: number) => void;
+}
+
+/**
+ * Hook to perform OCR on image files using Tesseract.js
+ */
+export function useOCR(options: UseOCROptions = {}) {
+  const { language = "eng", onProgress } = options;
+
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  const processImage = useCallback(
+    async (file: File): Promise<OCRResult | null> => {
+      setIsProcessing(true);
+      setProgress(0);
+      setError(null);
+
+      try {
+        // Check if file is an image
+        if (!file.type.startsWith("image/")) {
+          throw new Error("File must be an image");
+        }
+
+        // Read file as data URL
+        const fileUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error("Failed to read file"));
+          reader.readAsDataURL(file);
+        });
+
+        // Create worker with logger to receive progress messages
+        const worker = (await createWorker({
+          logger: (message: ProgressMessage) => {
+            const progressValue = Math.round((message.progress ?? 0) * 100);
+            setProgress(progressValue);
+            if (onProgress) onProgress(progressValue);
+          },
+        } as any)) as any;
+
+        // Initialize worker and load language
+        await worker.load();
+        await worker.loadLanguage(language);
+        await worker.initialize(language);
+
+        // Recognize text from image
+        const result = await worker.recognize(fileUrl);
+        const extractedText = (result?.data?.text ?? "").trim();
+        const confidence = result?.data?.confidence ?? 0;
+
+        // Clean up worker
+        await worker.terminate();
+
+        setProgress(100);
+
+        return {
+          text: extractedText,
+          confidence,
+          language,
+        };
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "OCR processing failed";
+        setError(errorMessage);
+        return null;
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [language, onProgress],
+  );
+
+  const processMultipleImages = useCallback(
+    async (files: File[]): Promise<Map<string, OCRResult | null>> => {
+      const results = new Map<string, OCRResult | null>();
+
+      for (const file of files) {
+        const result = await processImage(file);
+        results.set(file.name, result);
+      }
+
+      return results;
+    },
+    [processImage],
+  );
+
+  const reset = useCallback(() => {
+    setIsProcessing(false);
+    setProgress(0);
+    setError(null);
+  }, []);
+
+  return {
+    processImage,
+    processMultipleImages,
+    isProcessing,
+    progress,
+    error,
+    reset,
+  };
+}
